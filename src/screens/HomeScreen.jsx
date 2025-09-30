@@ -6,24 +6,26 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 const HomeScreen = () => {
+  const { t } = useTranslation();
+  
   return (
     <ScrollView style={styles.container}>
       <View style={styles.content}>
         <Text style={styles.title}>OVERVIEW</Text>
         
         <Text style={styles.welcomeText}>
-          Welcome to the Global Rights Compliance (GRC) Starvation Accountability app!{' '}
-          <Text style={styles.normalText}>
-            This mobile app is based on the Second Edition (2022) of GRC's unique{' '}
-          </Text>
+          {t('welcome')}
+        </Text>
+        
+        <Text style={styles.normalText}>
+          This mobile app is based on the Second Edition (2022) of GRC's unique{' '}
           <Text style={styles.linkText}>Starvation Training Manual</Text>
-          <Text style={styles.normalText}>
-            , a toolkit designed to assist a wide range of professionals and practitioners in 
-            identifying, investigating and addressing the deliberate use of starvation as a 
-            weapon of war and tool against civilians.
-          </Text>
+          , a toolkit designed to assist a wide range of professionals and practitioners in 
+          identifying, investigating and addressing the deliberate use of starvation as a 
+          weapon of war and tool against civilians.
         </Text>
 
         <Text style={styles.normalText}>
