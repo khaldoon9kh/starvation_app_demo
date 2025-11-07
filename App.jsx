@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View, Text, TouchableOpacity, I18nManager } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
@@ -7,6 +7,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import Icon from '@expo/vector-icons/MaterialIcons';
 import { useTranslation } from 'react-i18next';
 import './src/i18n/i18n';
+import MenuModal from './src/components/MenuModal';
 
 // Import screens
 import HomeScreen from './src/screens/HomeScreen';
@@ -15,13 +16,21 @@ import SavedScreen from './src/screens/SavedScreen';
 import TemplatesScreen from './src/screens/TemplatesScreen';
 import ArticleScreen from './src/screens/ArticleScreen';
 import ExportScreen from './src/screens/ExportScreen';
+// Import menu screens
+import AboutScreen from './src/screens/AboutScreen';
+import ContactScreen from './src/screens/ContactScreen';
+import CopyrightScreen from './src/screens/CopyrightScreen';
+import DisclaimerScreen from './src/screens/DisclaimerScreen';
+import SettingsScreen from './src/screens/SettingsScreen';
+import UserGuideScreen from './src/screens/UserGuideScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
 // Header component
-const AppHeader = ({title, showSearch = true, showMenu = true}) => {
+const AppHeader = ({title, showSearch = true, showMenu = true, onMenuPress}) => {
   const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === 'ar';
   
   const toggleLanguage = () => {
     const newLang = i18n.language === 'ar' ? 'en' : 'ar';
@@ -35,20 +44,44 @@ const AppHeader = ({title, showSearch = true, showMenu = true}) => {
   return (
     <View style={styles.header}>
       <StatusBar style="light" backgroundColor="#4CAF50" />
-      <View style={styles.headerContent}>
+      <View style={[
+        styles.headerContent,
+        { flexDirection: isRTL ? 'row-reverse' : 'row' }
+      ]}>
+        <View style={[
+          styles.headerIcons,
+          { flexDirection: isRTL ? 'row-reverse' : 'row' }
+        ]}>
+          {showMenu && (
+            <TouchableOpacity onPress={onMenuPress}>
+              <Icon 
+                name="menu" 
+                size={24} 
+                color="#4CAF50" 
+                style={[
+                  styles.icon,
+                  isRTL ? { marginRight: 15, marginLeft: 0 } : { marginLeft: 15, marginRight: 0 }
+                ]} 
+              />
+            </TouchableOpacity>
+          )}
+          {showSearch && (
+            <Icon 
+              name="search" 
+              size={24} 
+              color="#4CAF50" 
+              style={[
+                styles.icon,
+                isRTL ? { marginRight: 15, marginLeft: 0 } : { marginLeft: 15, marginRight: 0 }
+              ]} 
+            />
+          )}
+        </View>
         <TouchableOpacity onPress={toggleLanguage}>
           <Text style={styles.languageText}>
             {i18n.language === 'ar' ? t('english') : t('arabic')}
           </Text>
         </TouchableOpacity>
-        <View style={styles.headerIcons}>
-          {showSearch && (
-            <Icon name="search" size={24} color="#4CAF50" style={styles.icon} />
-          )}
-          {showMenu && (
-            <Icon name="menu" size={24} color="#4CAF50" style={styles.icon} />
-          )}
-        </View>
       </View>
     </View>
   );
@@ -121,13 +154,43 @@ const TabNavigator = () => {
   );
 };
 
+// Main stack navigator that includes both tab navigator and menu screens
+const MainStack = () => (
+  <Stack.Navigator screenOptions={{headerShown: false}}>
+    <Stack.Screen name="MainTabs" component={TabNavigator} />
+    <Stack.Screen name="About" component={AboutScreen} />
+    <Stack.Screen name="Contact" component={ContactScreen} />
+    <Stack.Screen name="Copyright" component={CopyrightScreen} />
+    <Stack.Screen name="Disclaimer" component={DisclaimerScreen} />
+    <Stack.Screen name="Settings" component={SettingsScreen} />
+    <Stack.Screen name="UserGuide" component={UserGuideScreen} />
+  </Stack.Navigator>
+);
+
+// Component with header that includes tab navigator
+const AppWithHeader = () => {
+  const [isMenuVisible, setIsMenuVisible] = useState(false);
+
+  const toggleMenu = () => {
+    setIsMenuVisible(!isMenuVisible);
+  };
+
+  return (
+    <View style={styles.container}>
+      <AppHeader onMenuPress={toggleMenu} />
+      <MainStack />
+      <MenuModal 
+        visible={isMenuVisible} 
+        onClose={() => setIsMenuVisible(false)} 
+      />
+    </View>
+  );
+};
+
 const App = () => {
   return (
     <NavigationContainer>
-      <View style={styles.container}>
-        <AppHeader />
-        <TabNavigator />
-      </View>
+      <AppWithHeader />
     </NavigationContainer>
   );
 };
@@ -166,7 +229,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   icon: {
-    marginLeft: 15,
+    // Margin will be handled dynamically based on RTL
   },
   tabBar: {
     backgroundColor: '#fff',
