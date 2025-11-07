@@ -15,8 +15,8 @@ import HomeScreen from './src/screens/HomeScreen';
 import LibraryScreen from './src/screens/LibraryScreen';
 import SavedScreen from './src/screens/SavedScreen';
 import TemplatesScreen from './src/screens/TemplatesScreen';
+import CategoryTemplatesScreen from './src/screens/CategoryTemplatesScreen';
 import ArticleScreen from './src/screens/ArticleScreen';
-import ExportScreen from './src/screens/ExportScreen';
 // Import menu screens
 import AboutScreen from './src/screens/AboutScreen';
 import ContactScreen from './src/screens/ContactScreen';
@@ -98,11 +98,15 @@ const LibraryStack = () => (
   </Stack.Navigator>
 );
 
-// Stack navigator for Templates (includes export screen)
+// Stack navigator for Templates
 const TemplatesStack = () => (
   <Stack.Navigator screenOptions={{headerShown: false}}>
     <Stack.Screen name="TemplatesMain" component={TemplatesScreen} />
-    <Stack.Screen name="Export" component={ExportScreen} />
+    <Stack.Screen 
+      name="CategoryTemplates" 
+      component={CategoryTemplatesScreen}
+      options={{headerShown: true}}
+    />
   </Stack.Navigator>
 );
 
@@ -151,7 +155,7 @@ const TabNavigator = () => {
       <Tab.Screen 
         name="Templates" 
         component={TemplatesStack}
-        options={{ tabBarLabel: t('templates') }}
+        options={{ tabBarLabel: t('templatesTab') }}
       />
     </Tab.Navigator>
   );

@@ -358,22 +358,104 @@ export const subscribeToTemplates = (callback) => {
 };
 
 /**
- * Get templates by category
+ * Get templates by category using language-specific category field
  */
-export const getTemplatesByCategory = async (category) => {
+export const getTemplatesByCategory = async (category, language = 'en') => {
   try {
-    const q = query(
+    let q;
+    const categoryField = language === 'ar' ? 'categoryAR' : 'categoryEN';
+    
+    // Try new language-specific category field first
+    try {
+      q = query(
+        templatesRef,
+        where(categoryField, '==', category),
+        orderBy('order', 'asc')
+      );
+      const snapshot = await getDocs(q);
+      const templates = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      
+      if (templates.length > 0) {
+        return templates;
+      }
+    } catch (error) {
+      console.log(`${categoryField} field not found, trying legacy category field`);
+    }
+    
+    // Fallback to legacy category field
+    q = query(
       templatesRef,
       where('category', '==', category),
       orderBy('order', 'asc')
     );
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   } catch (error) {
     console.error('Error fetching templates by category:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get unique template categories for specific language
+ */
+export const getTemplateCategories = async (language = 'en') => {
+  try {
+    const snapshot = await getDocs(templatesRef);
+    const templates = snapshot.docs.map(doc => doc.data());
+    
+    const categories = new Set();
+    const categoryField = language === 'ar' ? 'categoryAR' : 'categoryEN';
+    
+    templates.forEach(template => {
+      // Use language-specific category field
+      if (template[categoryField]) {
+        categories.add(template[categoryField]);
+      }
+      // Fallback to legacy category field if new field doesn't exist
+      else if (template.category && !template.categoryEN && !template.categoryAR) {
+        categories.add(template.category);
+      }
+    });
+    
+    return Array.from(categories).sort();
+  } catch (error) {
+    console.error('Error fetching template categories:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get templates grouped by category with proper language support
+ */
+export const getTemplatesGroupedByCategory = async (language = 'en') => {
+  try {
+    const allTemplates = await getTemplates();
+    const grouped = {};
+    
+    allTemplates.forEach(template => {
+      // Determine category based on language and available fields
+      let category;
+      if (language === 'ar') {
+        category = template.categoryAR || template.category || 'Other';
+      } else {
+        category = template.categoryEN || template.category || 'Other';
+      }
+      
+      if (!grouped[category]) {
+        grouped[category] = [];
+      }
+      grouped[category].push(template);
+    });
+    
+    // Sort templates within each category
+    Object.keys(grouped).forEach(category => {
+      grouped[category].sort((a, b) => (a.order || 0) - (b.order || 0));
+    });
+    
+    return grouped;
+  } catch (error) {
+    console.error('Error getting templates grouped by category:', error);
     throw error;
   }
 };
@@ -458,6 +540,14 @@ export const searchAllContent = async (searchTerm) => {
       if (item.descriptionArabic && searchInText(item.descriptionArabic, term)) score += 3;
       if (item.descriptionEn && searchInText(item.descriptionEn, term)) score += 3;
       if (item.descriptionAr && searchInText(item.descriptionAr, term)) score += 3;
+      
+      // For templates, also check new category fields
+      if (type === 'template') {
+        if (item.categoryEN && searchInText(item.categoryEN, term)) score += 5;
+        if (item.categoryAR && searchInText(item.categoryAR, term)) score += 5;
+        // Legacy category field
+        if (item.category && searchInText(item.category, term)) score += 5;
+      }
       
       return score;
     };
