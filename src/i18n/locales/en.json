@@ -31,5 +31,13 @@
   "contact_description": "Content will be provided later. This page will contain contact information and ways to reach support.",
   "copyright_description": "Content will be provided later. This page will contain copyright information and legal notices.",
   "disclaimer_description": "Content will be provided later. This page will contain disclaimer information and legal statements.",
-  "userguide_description": "Content will be provided later. This page will contain user guide and instructions on how to use the application."
+  "userguide_description": "Content will be provided later. This page will contain user guide and instructions on how to use the application.",
+  "search_placeholder": "Search articles, glossary, templates...",
+  "documents_match": "documents match your search",
+  "searching": "Searching...",
+  "no_results": "No results found",
+  "try_different_keywords": "Try different keywords or check spelling",
+  "categories": "Categories",
+  "glossary": "Glossary",
+  "diagrams": "Diagrams"
 }

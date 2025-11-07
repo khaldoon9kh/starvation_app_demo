@@ -8,6 +8,7 @@ import Icon from '@expo/vector-icons/MaterialIcons';
 import { useTranslation } from 'react-i18next';
 import './src/i18n/i18n';
 import MenuModal from './src/components/MenuModal';
+import SearchModal from './src/components/SearchModal';
 
 // Import screens
 import HomeScreen from './src/screens/HomeScreen';
@@ -28,7 +29,7 @@ const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
 // Header component
-const AppHeader = ({title, showSearch = true, showMenu = true, onMenuPress}) => {
+const AppHeader = ({title, showSearch = true, showMenu = true, onMenuPress, onSearchPress}) => {
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === 'ar';
   
@@ -66,15 +67,17 @@ const AppHeader = ({title, showSearch = true, showMenu = true, onMenuPress}) => 
             </TouchableOpacity>
           )}
           {showSearch && (
-            <Icon 
-              name="search" 
-              size={24} 
-              color="#4CAF50" 
-              style={[
-                styles.icon,
-                isRTL ? { marginRight: 15, marginLeft: 0 } : { marginLeft: 15, marginRight: 0 }
-              ]} 
-            />
+            <TouchableOpacity onPress={onSearchPress}>
+              <Icon 
+                name="search" 
+                size={24} 
+                color="#4CAF50" 
+                style={[
+                  styles.icon,
+                  isRTL ? { marginRight: 15, marginLeft: 0 } : { marginLeft: 15, marginRight: 0 }
+                ]} 
+              />
+            </TouchableOpacity>
           )}
         </View>
         <TouchableOpacity onPress={toggleLanguage}>
@@ -170,18 +173,30 @@ const MainStack = () => (
 // Component with header that includes tab navigator
 const AppWithHeader = () => {
   const [isMenuVisible, setIsMenuVisible] = useState(false);
+  const [isSearchVisible, setIsSearchVisible] = useState(false);
 
   const toggleMenu = () => {
     setIsMenuVisible(!isMenuVisible);
   };
 
+  const toggleSearch = () => {
+    setIsSearchVisible(!isSearchVisible);
+  };
+
   return (
     <View style={styles.container}>
-      <AppHeader onMenuPress={toggleMenu} />
+      <AppHeader 
+        onMenuPress={toggleMenu} 
+        onSearchPress={toggleSearch} 
+      />
       <MainStack />
       <MenuModal 
         visible={isMenuVisible} 
         onClose={() => setIsMenuVisible(false)} 
+      />
+      <SearchModal 
+        visible={isSearchVisible} 
+        onClose={() => setIsSearchVisible(false)} 
       />
     </View>
   );

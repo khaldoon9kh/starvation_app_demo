@@ -203,7 +203,7 @@ class DataStore {
     return this.subcategories[categoryId] || [];
   }
 
-  // Search functionality
+  // Search functionality with enhanced matching
   search(searchTerm) {
     if (!searchTerm || searchTerm.trim() === '') {
       return {
@@ -215,40 +215,106 @@ class DataStore {
       };
     }
 
-    const searchLower = searchTerm.toLowerCase();
+    const searchLower = searchTerm.toLowerCase().trim();
+
+    // Enhanced search function that checks multiple fields
+    const searchInText = (text, searchTerm) => {
+      if (!text || !searchTerm) return false;
+      return text.toLowerCase().includes(searchTerm);
+    };
+
+    // Score-based search for better relevance
+    const scoreItem = (item, searchTerm, type) => {
+      let score = 0;
+      const term = searchTerm.toLowerCase();
+      
+      // Title matches get highest score
+      if (item.title && searchInText(item.title, term)) score += 10;
+      if (item.titleAr && searchInText(item.titleAr, term)) score += 10;
+      if (item.titleEn && searchInText(item.titleEn, term)) score += 10;
+      if (item.titleArabic && searchInText(item.titleArabic, term)) score += 10;
+      
+      // For glossary, also check term fields
+      if (type === 'glossary') {
+        if (item.term && searchInText(item.term, term)) score += 10;
+        if (item.termArabic && searchInText(item.termArabic, term)) score += 10;
+      }
+      
+      // Content matches get medium score
+      if (item.contentEn && searchInText(item.contentEn, term)) score += 5;
+      if (item.contentAr && searchInText(item.contentAr, term)) score += 5;
+      if (item.definition && searchInText(item.definition, term)) score += 5;
+      if (item.definitionArabic && searchInText(item.definitionArabic, term)) score += 5;
+      if (item.definitionEn && searchInText(item.definitionEn, term)) score += 5;
+      if (item.definitionAr && searchInText(item.definitionAr, term)) score += 5;
+      
+      // Description matches get lower score
+      if (item.description && searchInText(item.description, term)) score += 3;
+      if (item.descriptionArabic && searchInText(item.descriptionArabic, term)) score += 3;
+      if (item.descriptionEn && searchInText(item.descriptionEn, term)) score += 3;
+      if (item.descriptionAr && searchInText(item.descriptionAr, term)) score += 3;
+      
+      return score;
+    };
+
+    // Filter and score results
+    const filterAndScore = (items, type) => {
+      return items
+        .map(item => ({ ...item, score: scoreItem(item, searchLower, type) }))
+        .filter(item => item.score > 0)
+        .sort((a, b) => b.score - a.score);
+    };
 
     const results = {
-      categories: this.categories.filter(item => 
-        item.title?.toLowerCase().includes(searchLower) ||
-        item.titleArabic?.toLowerCase().includes(searchLower)
-      ),
-      subcategories: Object.values(this.subcategories).flat().filter(item =>
-        item.title?.toLowerCase().includes(searchLower) ||
-        item.titleArabic?.toLowerCase().includes(searchLower) ||
-        item.contentEn?.toLowerCase().includes(searchLower) ||
-        item.contentAr?.toLowerCase().includes(searchLower)
-      ),
-      glossary: this.glossaryTerms.filter(item =>
-        item.term?.toLowerCase().includes(searchLower) ||
-        item.termArabic?.toLowerCase().includes(searchLower) ||
-        item.definition?.toLowerCase().includes(searchLower) ||
-        item.definitionArabic?.toLowerCase().includes(searchLower)
-      ),
-      diagrams: this.diagrams.filter(item =>
-        item.title?.toLowerCase().includes(searchLower) ||
-        item.titleArabic?.toLowerCase().includes(searchLower) ||
-        item.description?.toLowerCase().includes(searchLower) ||
-        item.descriptionArabic?.toLowerCase().includes(searchLower)
-      ),
-      templates: this.templates.filter(item =>
-        item.title?.toLowerCase().includes(searchLower) ||
-        item.titleArabic?.toLowerCase().includes(searchLower) ||
-        item.description?.toLowerCase().includes(searchLower) ||
-        item.descriptionArabic?.toLowerCase().includes(searchLower)
-      )
+      categories: filterAndScore(this.categories, 'category'),
+      subcategories: filterAndScore(Object.values(this.subcategories).flat(), 'subcategory'),
+      glossary: filterAndScore(this.glossaryTerms, 'glossary'),
+      diagrams: filterAndScore(this.diagrams, 'diagram'),
+      templates: filterAndScore(this.templates, 'template')
     };
 
     return results;
+  }
+
+  // Get search suggestions
+  getSearchSuggestions(partialTerm) {
+    if (!partialTerm || partialTerm.length < 2) return [];
+    
+    const suggestions = new Set();
+    const searchLower = partialTerm.toLowerCase();
+    
+    const allItems = [
+      ...this.categories,
+      ...Object.values(this.subcategories).flat(),
+      ...this.glossaryTerms
+    ];
+
+    // Extract potential search terms from titles
+    allItems.forEach(item => {
+      // Check English titles
+      if (item.title && item.title.toLowerCase().startsWith(searchLower)) {
+        suggestions.add(item.title);
+      }
+      if (item.titleEn && item.titleEn.toLowerCase().startsWith(searchLower)) {
+        suggestions.add(item.titleEn);
+      }
+      // Check Arabic titles
+      if (item.titleAr && item.titleAr.includes(partialTerm)) {
+        suggestions.add(item.titleAr);
+      }
+      if (item.titleArabic && item.titleArabic.includes(partialTerm)) {
+        suggestions.add(item.titleArabic);
+      }
+      // For glossary terms
+      if (item.term && item.term.toLowerCase().startsWith(searchLower)) {
+        suggestions.add(item.term);
+      }
+      if (item.termArabic && item.termArabic.includes(partialTerm)) {
+        suggestions.add(item.termArabic);
+      }
+    });
+
+    return Array.from(suggestions).slice(0, 5); // Limit to 5 suggestions
   }
 
   // Clean up subscriptions
