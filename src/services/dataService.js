@@ -168,14 +168,39 @@ export const getAllSubcategories = async () => {
  */
 export const getGlossaryTerms = async () => {
   try {
+    // console.log('🔍 Fetching glossary terms from Firebase...');
     const q = query(glossaryRef, orderBy('order', 'asc'));
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({
+    
+    const glossaryData = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
     }));
+    
+    // console.log('📚 Glossary terms fetched successfully:');
+    // console.log('📊 Total terms:', glossaryData.length);
+    // console.log('📋 Glossary data:', glossaryData);
+    
+    // Log each term for detailed inspection
+    // glossaryData.forEach((term, index) => {
+    //   console.log(`📖 Term ${index + 1}:`, {
+    //     id: term.id,
+    //     term: term.term,
+    //     termArabic: term.termArabic,
+    //     definition: term.definition?.substring(0, 100) + '...', // Show first 100 chars
+    //     definitionArabic: term.definitionArabic?.substring(0, 100) + '...',
+    //     order: term.order
+    //   });
+    // });
+    
+    return glossaryData;
   } catch (error) {
-    console.error('Error fetching glossary terms:', error);
+    console.error('❌ Error fetching glossary terms:', error);
+    console.log('📝 Error details:', {
+      code: error.code,
+      message: error.message,
+      stack: error.stack
+    });
     throw error;
   }
 };
