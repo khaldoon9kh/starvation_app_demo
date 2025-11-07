@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
+  I18nManager,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useTranslation } from 'react-i18next';
@@ -18,6 +19,7 @@ const LibraryScreen = ({navigation}) => {
   const [expandedSections, setExpandedSections] = useState({});
   const [expandedSubcategories, setExpandedSubcategories] = useState({});
   const [refreshing, setRefreshing] = useState(false);
+  const isRTL = i18n.language === 'ar';
 
   const toggleSection = (sectionId) => {
     setExpandedSections(prev => ({
@@ -94,36 +96,80 @@ const LibraryScreen = ({navigation}) => {
     }
 
     return (
-      <View style={styles.subItemsContainer}>
+      <View style={[
+        styles.subItemsContainer,
+        isRTL 
+          ? { borderRightWidth: 4, borderRightColor: '#2196F3', borderLeftWidth: 0 }
+          : { borderLeftWidth: 4, borderLeftColor: '#2196F3', borderRightWidth: 0 }
+      ]}>
         {subcategories.map((subcategory) => (
           <View key={subcategory.id}>
             {subcategory.subSubCategories && subcategory.subSubCategories.length > 0 ? (
               // Render expandable subcategory with subSubCategories
               <View>
                 <TouchableOpacity
-                  style={[styles.subItem, styles.expandableSubItem]}
+                  style={[
+                    styles.subItem, 
+                    styles.expandableSubItem,
+                    { 
+                      flexDirection: isRTL ? 'row-reverse' : 'row',
+                      borderLeftColor: isRTL ? 'transparent' : '#4CAF50',
+                      borderRightColor: isRTL ? '#4CAF50' : 'transparent',
+                      borderLeftWidth: isRTL ? 0 : 4,
+                      borderRightWidth: isRTL ? 4 : 0,
+                      marginBottom: expandedSubcategories[subcategory.id] ? 0 : 5,  
+                      borderBottomLeftRadius: expandedSubcategories[subcategory.id] ? 0 : 6,
+                      borderBottomRightRadius: expandedSubcategories[subcategory.id] ? 0 : 6,
+                    }
+                  ]}
                   onPress={() => toggleSubcategory(subcategory.id)}>
-                  <Text style={styles.subItemText}>
+                  <Text style={[styles.subItemText, isRTL && styles.rtlText]}>
                     {i18n.language === 'ar' ? subcategory.titleAr || subcategory.titleEn : subcategory.titleEn}
                   </Text>
                   <Icon 
-                    name={expandedSubcategories[subcategory.id] ? 'keyboard-arrow-down' : 'keyboard-arrow-right'} 
+                    name={expandedSubcategories[subcategory.id] 
+                      ? 'keyboard-arrow-down' 
+                      : isRTL ? 'keyboard-arrow-left' : 'keyboard-arrow-right'} 
                     size={20} 
                     color="#666" 
                   />
                 </TouchableOpacity>
                 
                 {expandedSubcategories[subcategory.id] && (
-                  <View style={styles.subSubItemsContainer}>
+                  <View 
+                    style={[
+                    styles.subSubItemsContainer,
+                    { 
+                      borderLeftColor: isRTL ? 'transparent' : '#4CAF50',
+                      borderRightColor: isRTL ? '#4CAF50' : 'transparent',
+                      borderLeftWidth: isRTL ? 0 : 4,
+                      borderRightWidth: isRTL ? 4 : 0,
+                    }
+                  ]}
+                  >
                     {subcategory.subSubCategories.map((subSub) => (
                       <TouchableOpacity
                         key={subSub.id}
-                        style={styles.subSubItem}
+                        style={[
+                          styles.subSubItem,
+                          { 
+                            flexDirection: isRTL ? 'row-reverse' : 'row',
+                            borderLeftColor: isRTL ? 'transparent' : 'black',
+                            borderRightColor: isRTL ? 'black' : 'transparent',
+                            borderLeftWidth: isRTL ? 0 : 4,
+                            borderRightWidth: isRTL ? 4 : 0,
+                            marginLeft: 10,
+                          }
+                        ]}
                         onPress={() => navigateToSubcategory({ id: categoryId }, subSub)}>
-                        <Text style={styles.subSubItemText}>
+                        <Text style={[styles.subSubItemText, isRTL && styles.rtlText]}>
                           {i18n.language === 'ar' ? subSub.titleAr || subSub.titleEn : subSub.titleEn}
                         </Text>
-                        <Icon name="keyboard-arrow-right" size={16} color="#666" />
+                        <Icon 
+                          name={isRTL ? 'keyboard-arrow-left' : 'keyboard-arrow-right'} 
+                          size={16} 
+                          color="#666" 
+                        />
                       </TouchableOpacity>
                     ))}
                   </View>
@@ -132,12 +178,26 @@ const LibraryScreen = ({navigation}) => {
             ) : (
               // Render regular subcategory without subSubCategories
               <TouchableOpacity
-                style={styles.subItem}
+                style={[
+                    styles.subItem, 
+                    styles.expandableSubItem,
+                    { 
+                      flexDirection: isRTL ? 'row-reverse' : 'row',
+                      borderLeftColor: isRTL ? 'transparent' : '#4CAF50',
+                      borderRightColor: isRTL ? '#4CAF50' : 'transparent',
+                      borderLeftWidth: isRTL ? 0 : 4,
+                      borderRightWidth: isRTL ? 4 : 0,
+                    }
+                  ]}
                 onPress={() => navigateToSubcategory({ id: categoryId }, subcategory)}>
-                <Text style={styles.subItemText}>
+                <Text style={[styles.subItemText, isRTL && styles.rtlText]}>
                   {i18n.language === 'ar' ? subcategory.titleAr || subcategory.titleEn : subcategory.titleEn}
                 </Text>
-                <Icon name="keyboard-arrow-right" size={20} color="#666" />
+                <Icon 
+                  name={isRTL ? 'keyboard-arrow-left' : 'keyboard-arrow-right'} 
+                  size={20} 
+                  color="#666" 
+                />
               </TouchableOpacity>
             )}
           </View>
@@ -150,13 +210,27 @@ const LibraryScreen = ({navigation}) => {
     return (
       <View key={category.id} style={styles.sectionContainer}>
         <TouchableOpacity
-          style={[styles.sectionItem, {borderLeftColor: '#2196F3'}, expandedSections[category.id] ? {borderBottomLeftRadius: 0, borderBottomRightRadius: 0} : {borderBottomLeftRadius: 6, borderBottomRightRadius: 6}]}
+          style={[
+            styles.sectionItem,
+            { 
+              flexDirection: isRTL ? 'row-reverse' : 'row',
+              borderLeftColor: isRTL ? 'transparent' : '#2196F3',
+              borderRightColor: isRTL ? '#2196F3' : 'transparent',
+              borderLeftWidth: isRTL ? 0 : 4,
+              borderRightWidth: isRTL ? 4 : 0,
+            },
+            expandedSections[category.id] 
+              ? {borderBottomLeftRadius: 0, borderBottomRightRadius: 0} 
+              : {borderBottomLeftRadius: 6, borderBottomRightRadius: 6}
+          ]}
           onPress={() => toggleSection(category.id)}>
-          <Text style={styles.sectionTitle}>
+          <Text style={[styles.sectionTitle, isRTL && styles.rtlText]}>
             {i18n.language === 'ar' ? category.titleAr || category.titleEn : category.titleEn}
           </Text>
           <Icon 
-            name={expandedSections[category.id] ? 'keyboard-arrow-down' : 'keyboard-arrow-right'} 
+            name={expandedSections[category.id] 
+              ? 'keyboard-arrow-down' 
+              : isRTL ? 'keyboard-arrow-left' : 'keyboard-arrow-right'} 
             size={24} 
             color="#4CAF50" 
           />
@@ -176,14 +250,14 @@ const LibraryScreen = ({navigation}) => {
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
       }>
       <View style={styles.content}>
-        <Text style={styles.title}>THIS IS YOUR STARVATION LIBRARY</Text>
+        <Text style={[styles.title, isRTL && styles.rtlTitle]}>THIS IS YOUR STARVATION LIBRARY</Text>
         
         {categories.map(renderCategory)}
         
         {categories.length === 0 && !categoriesLoading && (
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No content available</Text>
-            <Text style={styles.emptySubText}>Check your internet connection and try again</Text>
+            <Text style={[styles.emptyText, isRTL && styles.rtlText]}>No content available</Text>
+            <Text style={[styles.emptySubText, isRTL && styles.rtlText]}>Check your internet connection and try again</Text>
           </View>
         )}
       </View>
@@ -212,11 +286,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     padding: 20,
     borderRadius: 8,
-    borderLeftWidth: 4,
-    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    elevation: 2,
+    elevation: 3,
     shadowOffset: {width: 0, height: 1},
     shadowOpacity: 0.1,
     shadowRadius: 2,
@@ -227,16 +299,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   subItemsContainer: {
-    // marginTop: 5,
-    // borderRadius: 6,
     paddingVertical: 5,
-    // marginLeft: 10,
+    paddingHorizontal: 10,
     backgroundColor: '#fff',
     borderBottomLeftRadius: 6,
     borderBottomRightRadius: 6,
-    borderLeftWidth: 4,
-    borderLeftColor: '#2196F3',
-    paddingLeft: 10,
   },
   expandableSubItem: {
     backgroundColor: '#fff',
@@ -247,16 +314,13 @@ const styles = StyleSheet.create({
     padding: 15,
     paddingLeft: 10,
     borderRadius: 8,
-    borderLeftWidth: 4,
-    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 2,
+    // marginBottom: 5,
     elevation: 3,
     shadowOffset: {width: 0, height: 1},
     shadowOpacity: 0.3,
     shadowRadius: 1,
-    marginBottom: 5,
   },
   subItemTitle: {
     fontSize: 14,
@@ -308,22 +372,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   subSubItemsContainer: {
-    paddingLeft: 10,
     paddingTop: 5,
     marginBottom: 10,
     shadowOffset: {width: 0, height: 1},
     shadowOpacity: 0.3,
     shadowRadius: 1,
-    // backgroundColor: 'red',
+    backgroundColor: '#fff',
+    borderBottomLeftRadius: 6,
+    borderBottomRightRadius: 6,
+
   },
   subSubItem: {
     backgroundColor: '#fff',
     padding: 12,
     paddingLeft: 25,
     borderRadius: 6,
-    borderLeftWidth: 4,
-    borderLeftColor: 'black',
-    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 2,
@@ -348,6 +411,13 @@ const styles = StyleSheet.create({
     color: '#999',
     marginTop: 5,
     textAlign: 'center',
+  },
+  // RTL-specific styles
+  rtlTitle: {
+    textAlign: 'right',
+  },
+  rtlText: {
+    textAlign: 'right',
   },
 });
 
