@@ -7,15 +7,16 @@
   "arabic": "العربية",
   "search": "Search",
   "menu": "Menu",
-  "welcome": "Welcome to Starvation App",
+  "welcome": "Welcome to GRC Starvation Toolkit",
   "articles": "Articles",
   "bookmarks": "Bookmarks",
 
-  "settings": "Settings",
+
   "about": "About",
   "contact": "Contact",
   "copyright": "Copyright",
   "disclaimer": "Disclaimer",
+  "settings": "Settings",
   "userguide": "User Guide",
   "language": "Language",
   "current_language": "Current Language",
@@ -27,7 +28,7 @@
   "app_info": "App Information",
   "app_version": "App Version",
   "build_number": "Build Number",
-  "about_description": "Content will be provided later. This page will contain information about the application, its purpose, and functionality.",
+  "about_description": "An informational toolkit designed to assist legal and non-legal professionals in identifying, investigating, addressing and seeking accountability for the deliberate use of mass starvation as a tool against civilians.",
   "contact_description": "Content will be provided later. This page will contain contact information and ways to reach support.",
   "copyright_description": "Content will be provided later. This page will contain copyright information and legal notices.",
   "disclaimer_description": "Content will be provided later. This page will contain disclaimer information and legal statements.",
@@ -105,6 +106,40 @@
     "exportButton": "Export Templates & Checklists",
     "exportCategory": "Export Category Templates",
     "allTemplates": "All Templates"
+  },
+  "landing": {
+    "letsGetReady": "LET'S GET READY",
+    "description": "For the safety and security of our users, the content of this app must be manually downloaded and updated. You are seeing this message because the app currently has no content downloaded. Please go to settings and download the most recent version of the app's content.",
+    "settings": "SETTINGS",
+    "skipForNow": "Skip for now",
+    "skipTitle": "Continue Without Content?",
+    "skipMessage": "You can download content later from Settings. Some features may not be available without content.",
+    "continueAnyway": "Continue Anyway",
+    "infoNote": "This ensures you always have the latest and most secure content."
+  },
+  "settingsScreen": {
+    "contentManagement": "Content Management",
+    "downloadContent": "Download content updates",
+    "contentDownloaded": "Content is up to date",
+    "contentNotDownloaded": "Content not downloaded",
+    "download": "DOWNLOAD",
+    "downloadRequired": "Download Required",
+    "downloadMessage": "To use all app features, you need to download the latest content. This includes articles, templates, and other resources.",
+    "downloadNow": "Download Now",
+    "preparingDownload": "Preparing download...",
+    "fetchingData": "Fetching latest content...",
+    "savingData": "Saving content locally...",
+    "downloadComplete": "Download Complete",
+    "downloadSuccessMessage": "Content has been successfully downloaded. The app is now ready to use!",
+    "downloadError": "Failed to download content. Please check your internet connection and try again."
+  },
+  "app": {
+    "name": "GRC Starvation Toolkit",
+    "subtitle": "Legal Accountability & Investigation Guide",
+    "version": "Version 2022"
+  },
+  "splash": {
+    "loading": "Loading..."
   },
   "common": {
     "loading": "Loading...",

@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "starvation_app_demo",
-    "slug": "starvation_app_demo",
-    "version": "1.0.0",
+    "name": "GRC Starvation Toolkit",
+    "slug": "grc-starvation-toolkit",
+    "version": "2022.1.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "updates": {
@@ -14,10 +14,10 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.starvation.demo"
+      "bundleIdentifier": "com.grc.starvation.toolkit"
     },
     "android": {
-      "package": "com.starvation.demo"
+      "package": "com.grc.starvation.toolkit"
     }
   }
 }

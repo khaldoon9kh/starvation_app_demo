@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, View, Text, TouchableOpacity, I18nManager } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, I18nManager, ActivityIndicator } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -24,6 +25,8 @@ import CopyrightScreen from './src/screens/CopyrightScreen';
 import DisclaimerScreen from './src/screens/DisclaimerScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import UserGuideScreen from './src/screens/UserGuideScreen';
+import LandingScreen from './src/screens/LandingScreen';
+import SplashScreen from './src/screens/SplashScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -206,10 +209,38 @@ const AppWithHeader = () => {
   );
 };
 
+// Root navigation with splash screen
+const RootNavigator = () => {
+  const RootStack = createStackNavigator();
+
+  return (
+    <RootStack.Navigator 
+      screenOptions={{ headerShown: false }}
+      initialRouteName="Splash"
+    >
+      {/* Splash screen - checks for content and routes accordingly */}
+      <RootStack.Screen name="Splash" component={SplashScreen} />
+      
+      {/* Landing screen - shown when no content exists */}
+      <RootStack.Screen name="Landing" component={LandingScreen} />
+      
+      {/* Main app - shown when content exists */}
+      <RootStack.Screen name="MainTabs" component={AppWithHeader} />
+      
+      {/* Settings screen - accessible from landing for content download */}
+      <RootStack.Screen 
+        name="Settings" 
+        component={SettingsScreen}
+        options={{ headerShown: true, title: 'Settings' }}
+      />
+    </RootStack.Navigator>
+  );
+};
+
 const App = () => {
   return (
     <NavigationContainer>
-      <AppWithHeader />
+      <RootNavigator />
     </NavigationContainer>
   );
 };
@@ -243,6 +274,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#4CAF50',
     fontWeight: '500',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#666',
   },
   headerIcons: {
     flexDirection: 'row',

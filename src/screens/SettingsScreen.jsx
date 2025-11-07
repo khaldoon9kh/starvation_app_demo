@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,15 +6,103 @@ import {
   ScrollView,
   TouchableOpacity,
   Switch,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useTranslation } from 'react-i18next';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getAllContentForCache } from '../services/dataService';
 
-const SettingsScreen = ({ navigation }) => {
+const CONTENT_STATUS_KEY = 'app_content_status';
+const CONTENT_DATA_KEY = 'app_content_data';
+
+const SettingsScreen = ({ navigation, route }) => {
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === 'ar';
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [offlineModeEnabled, setOfflineModeEnabled] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  const [contentStatus, setContentStatus] = useState('none'); // 'none', 'downloading', 'downloaded'
+  const [downloadProgress, setDownloadProgress] = useState('');
+  
+  const showDownloadPrompt = route?.params?.showDownloadPrompt;
+
+  useEffect(() => {
+    checkContentStatus();
+    
+    if (showDownloadPrompt) {
+      // Show download prompt after a short delay to ensure UI is ready
+      setTimeout(() => {
+        showInitialDownloadPrompt();
+      }, 500);
+    }
+  }, [showDownloadPrompt]);
+
+  const checkContentStatus = async () => {
+    try {
+      const status = await AsyncStorage.getItem(CONTENT_STATUS_KEY);
+      setContentStatus(status || 'none');
+    } catch (error) {
+      console.error('Error checking content status:', error);
+    }
+  };
+
+  const showInitialDownloadPrompt = () => {
+    Alert.alert(
+      t('settingsScreen.downloadRequired', 'Download Required'),
+      t('settingsScreen.downloadMessage', 'To use all app features, you need to download the latest content. This includes articles, templates, and other resources.'),
+      [
+        { text: t('common.cancel', 'Cancel'), style: 'cancel' },
+        { text: t('settingsScreen.downloadNow', 'Download Now'), onPress: handleDownloadContent }
+      ]
+    );
+  };
+
+  const handleDownloadContent = async () => {
+    try {
+      setDownloading(true);
+      setDownloadProgress(t('settingsScreen.preparingDownload', 'Preparing download...'));
+      
+      // Fetch all content from Firebase
+      setDownloadProgress(t('settingsScreen.fetchingData', 'Fetching latest content...'));
+      const contentData = await getAllContentForCache();
+      
+      setDownloadProgress(t('settingsScreen.savingData', 'Saving content locally...'));
+      
+      // Store content data
+      await AsyncStorage.setItem(CONTENT_DATA_KEY, JSON.stringify(contentData));
+      await AsyncStorage.setItem(CONTENT_STATUS_KEY, 'downloaded');
+      
+      setContentStatus('downloaded');
+      setDownloadProgress('');
+      
+      // Show success message
+      Alert.alert(
+        t('settingsScreen.downloadComplete', 'Download Complete'),
+        t('settingsScreen.downloadSuccessMessage', 'Content has been successfully downloaded. The app is now ready to use!'),
+        [
+          { 
+            text: t('common.ok', 'OK'), 
+            onPress: () => {
+              // Navigate to main app
+              navigation.replace('MainTabs');
+            }
+          }
+        ]
+      );
+      
+    } catch (error) {
+      console.error('Error downloading content:', error);
+      Alert.alert(
+        t('common.error', 'Error'),
+        t('settingsScreen.downloadError', 'Failed to download content. Please check your internet connection and try again.'),
+        [{ text: t('common.ok', 'OK') }]
+      );
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   const changeLanguage = (language) => {
     i18n.changeLanguage(language);
@@ -74,7 +162,7 @@ const SettingsScreen = ({ navigation }) => {
           styles.headerTitle,
           { textAlign: isRTL ? 'right' : 'center' }
         ]}>
-          {t('settings') || 'Settings'}
+          Settings
         </Text>
         
         <View style={styles.placeholder} />
@@ -104,6 +192,44 @@ const SettingsScreen = ({ navigation }) => {
             i18n.language === 'ar' ? (t('current_language') || 'اللغة الحالية') : null,
             () => changeLanguage('ar'),
             i18n.language === 'ar' ? <Icon name="check" size={20} color="#4CAF50" /> : null
+          )}
+
+          {/* Content Management Section */}
+          <Text style={[
+            styles.sectionTitle,
+            { textAlign: isRTL ? 'right' : 'left' }
+          ]}>
+            {t('settingsScreen.contentManagement', 'Content Management')}
+          </Text>
+
+          {downloading ? (
+            <View style={styles.downloadingContainer}>
+              <ActivityIndicator size="small" color="#4CAF50" />
+              <Text style={[
+                styles.downloadingText,
+                { textAlign: isRTL ? 'right' : 'left', marginLeft: isRTL ? 0 : 10, marginRight: isRTL ? 10 : 0 }
+              ]}>
+                {downloadProgress}
+              </Text>
+            </View>
+          ) : (
+            renderSettingItem(
+              t('settingsScreen.downloadContent', 'Download content updates'),
+              contentStatus === 'downloaded' 
+                ? t('settingsScreen.contentDownloaded', 'Content is up to date')
+                : t('settingsScreen.contentNotDownloaded', 'Content not downloaded'),
+              contentStatus !== 'downloaded' ? handleDownloadContent : null,
+              contentStatus === 'downloaded' 
+                ? <Icon name="check-circle" size={20} color="#4CAF50" />
+                : <TouchableOpacity 
+                    style={styles.downloadButton} 
+                    onPress={handleDownloadContent}
+                  >
+                    <Text style={styles.downloadButtonText}>
+                      {t('settingsScreen.download', 'DOWNLOAD')}
+                    </Text>
+                  </TouchableOpacity>
+            )
           )}
 
           {/* App Settings Section */}
@@ -235,6 +361,34 @@ const styles = StyleSheet.create({
   },
   settingRight: {
     marginLeft: 10,
+  },
+  downloadingContainer: {
+    backgroundColor: '#fff',
+    padding: 16,
+    borderRadius: 8,
+    marginBottom: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    elevation: 1,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 1,
+  },
+  downloadingText: {
+    fontSize: 14,
+    color: '#666',
+    flex: 1,
+  },
+  downloadButton: {
+    backgroundColor: '#4CAF50',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 6,
+  },
+  downloadButtonText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 'bold',
   },
 });
 
