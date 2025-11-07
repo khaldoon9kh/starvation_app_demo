@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Modal,
   Dimensions,
+  Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import Markdown from 'react-native-markdown-display';
@@ -24,8 +25,26 @@ const ArticleScreen = ({route, navigation}) => {
   const [selectedTerm, setSelectedTerm] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   
-  const articleTitle = title || (i18n.language === 'ar' ? subcategory?.titleAr || subcategory?.titleEn : subcategory?.titleEn) || 'Article';
-  const content = subcategory ? (i18n.language === 'ar' ? subcategory.contentAr || subcategory.contentEn : subcategory.contentEn || subcategory.contentAr) : 'Content not available';
+  // Debug logging
+  console.log('📖 ArticleScreen received data:', {
+    title,
+    subcategory: subcategory ? {
+      id: subcategory.id,
+      titleEn: subcategory.titleEn,
+      titleAr: subcategory.titleAr,
+      contentEn: subcategory.contentEn ? 'Has content' : 'No content',
+      contentAr: subcategory.contentAr ? 'Has content' : 'No content'
+    } : null,
+    category: category ? { id: category.id } : null
+  });
+
+  const articleTitle = title || (i18n.language === 'ar' 
+    ? subcategory?.titleAr || subcategory?.titleEn || subcategory?.title 
+    : subcategory?.titleEn || subcategory?.title || subcategory?.titleAr) || 'Article';
+    
+  const content = subcategory ? (i18n.language === 'ar' 
+    ? subcategory.contentAr || subcategory.contentEn 
+    : subcategory.contentEn || subcategory.contentAr) : null;
 
   // Function to find glossary term by name
   const findGlossaryTerm = (termName) => {
@@ -77,13 +96,62 @@ const ArticleScreen = ({route, navigation}) => {
   const toggleSave = async () => {
     if (!subcategory) return;
     
-    if (itemIsBookmarked) {
-      await removeBookmark(subcategory.id, 'subcategory');
-    } else {
-      await addBookmark({
-        ...subcategory,
-        type: 'subcategory'
-      });
+    try {
+      if (itemIsBookmarked) {
+        const success = await removeBookmark(subcategory.id, 'subcategory');
+        if (success) {
+          // Optional: Show toast or brief feedback for removal
+          console.log('Article removed from saved items');
+        }
+      } else {
+        // Ensure we have proper data structure for bookmark
+        const bookmarkData = {
+          ...subcategory,
+          type: 'subcategory',
+          // Ensure title fields are properly set
+          titleEn: subcategory.titleEn || subcategory.title || articleTitle,
+          titleAr: subcategory.titleAr || subcategory.titleArabic,
+        };
+        
+        console.log('💾 Creating bookmark with data:', {
+          id: bookmarkData.id,
+          titleEn: bookmarkData.titleEn,
+          titleAr: bookmarkData.titleAr,
+          hasContentEn: !!bookmarkData.contentEn,
+          hasContentAr: !!bookmarkData.contentAr
+        });
+        
+        const success = await addBookmark(bookmarkData);
+        if (success) {
+          // Show confirmation that article was saved
+          Alert.alert(
+            t('article_saved') || 'Article Saved',
+            t('article_saved_message') || 'This article has been added to your saved items.',
+            [
+              {
+                text: t('ok') || 'OK',
+                style: 'default',
+              },
+              {
+                text: t('view_saved') || 'View Saved',
+                onPress: () => {
+                  // Navigate to saved screen after a brief delay
+                  setTimeout(() => {
+                    navigation.navigate('Saved');
+                  }, 100);
+                },
+              },
+            ]
+          );
+        }
+      }
+    } catch (error) {
+      console.error('Error toggling bookmark:', error);
+      Alert.alert(
+        t('error') || 'Error',
+        t('bookmark_error') || 'There was an error saving this article. Please try again.',
+        [{ text: t('ok') || 'OK' }]
+      );
     }
   };
 

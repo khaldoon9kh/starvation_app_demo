@@ -361,12 +361,29 @@ class DataStore {
   async addBookmark(item) {
     try {
       const bookmarks = await this.getBookmarks();
+      
+      // Create a comprehensive bookmark object
       const bookmark = {
         id: item.id,
-        type: item.type, // 'category', 'subcategory', 'glossary', 'diagram', 'template'
-        title: item.title || item.term,
-        titleArabic: item.titleArabic || item.termArabic,
-        addedAt: new Date().toISOString()
+        type: item.type || 'subcategory', // Default to subcategory
+        // Fixed title extraction to handle all field variations
+        title: item.titleEn || item.title || item.term,
+        titleArabic: item.titleAr || item.titleArabic || item.termArabic,
+        categoryId: item.categoryId, // Store category reference for navigation
+        addedAt: new Date().toISOString(),
+        // Store complete data with proper field mapping
+        fullData: {
+          ...item,
+          // Ensure consistent field names for ArticleScreen
+          titleEn: item.titleEn || item.title,
+          titleAr: item.titleAr || item.titleArabic,
+          contentEn: item.contentEn,
+          contentAr: item.contentAr,
+          hasContent: item.hasContent !== false, // Default to true if not specified
+          level: item.level || 1,
+          order: item.order || 0,
+          categoryId: item.categoryId
+        }
       };
       
       // Check if already bookmarked
@@ -374,6 +391,9 @@ class DataStore {
       if (!exists) {
         bookmarks.push(bookmark);
         await AsyncStorage.setItem('bookmarks', JSON.stringify(bookmarks));
+        console.log('✅ Bookmark added:', bookmark.title);
+      } else {
+        console.log('ℹ️ Item already bookmarked:', bookmark.title);
       }
       return bookmarks;
     } catch (error) {

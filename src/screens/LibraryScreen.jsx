@@ -11,11 +11,12 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useTranslation } from 'react-i18next';
-import { useCategories, useSubcategories } from '../hooks/useFirebaseData';
+import { useCategories, useSubcategories, useBookmarks } from '../hooks/useFirebaseData';
 
 const LibraryScreen = ({navigation}) => {
   const { t, i18n } = useTranslation();
   const { categories, loading: categoriesLoading, error: categoriesError } = useCategories();
+  const { isBookmarked } = useBookmarks();
   const [expandedSections, setExpandedSections] = useState({});
   const [expandedSubcategories, setExpandedSubcategories] = useState({});
   const [refreshing, setRefreshing] = useState(false);
@@ -123,9 +124,22 @@ const LibraryScreen = ({navigation}) => {
                     }
                   ]}
                   onPress={() => toggleSubcategory(subcategory.id)}>
-                  <Text style={[styles.subItemText, isRTL && styles.rtlText]}>
-                    {i18n.language === 'ar' ? subcategory.titleAr || subcategory.titleEn : subcategory.titleEn}
-                  </Text>
+                  <View style={styles.itemTextContainer}>
+                    <Text style={[styles.subItemText, isRTL && styles.rtlText]}>
+                      {i18n.language === 'ar' ? subcategory.titleAr || subcategory.titleEn : subcategory.titleEn}
+                    </Text>
+                    {isBookmarked(subcategory.id, 'subcategory') && (
+                      <Icon 
+                        name="bookmark" 
+                        size={16} 
+                        color="#FF9800" 
+                        style={[
+                          styles.bookmarkIcon,
+                          isRTL ? { marginRight: 8, marginLeft: 0 } : { marginLeft: 8, marginRight: 0 }
+                        ]}
+                      />
+                    )}
+                  </View>
                   <Icon 
                     name={expandedSubcategories[subcategory.id] 
                       ? 'keyboard-arrow-down' 
@@ -162,9 +176,22 @@ const LibraryScreen = ({navigation}) => {
                           }
                         ]}
                         onPress={() => navigateToSubcategory({ id: categoryId }, subSub)}>
-                        <Text style={[styles.subSubItemText, isRTL && styles.rtlText]}>
-                          {i18n.language === 'ar' ? subSub.titleAr || subSub.titleEn : subSub.titleEn}
-                        </Text>
+                        <View style={styles.itemTextContainer}>
+                          <Text style={[styles.subSubItemText, isRTL && styles.rtlText]}>
+                            {i18n.language === 'ar' ? subSub.titleAr || subSub.titleEn : subSub.titleEn}
+                          </Text>
+                          {isBookmarked(subSub.id, 'subcategory') && (
+                            <Icon 
+                              name="bookmark" 
+                              size={14} 
+                              color="#FF9800" 
+                              style={[
+                                styles.bookmarkIcon,
+                                isRTL ? { marginRight: 8, marginLeft: 0 } : { marginLeft: 8, marginRight: 0 }
+                              ]}
+                            />
+                          )}
+                        </View>
                         <Icon 
                           name={isRTL ? 'keyboard-arrow-left' : 'keyboard-arrow-right'} 
                           size={16} 
@@ -190,9 +217,22 @@ const LibraryScreen = ({navigation}) => {
                     }
                   ]}
                 onPress={() => navigateToSubcategory({ id: categoryId }, subcategory)}>
-                <Text style={[styles.subItemText, isRTL && styles.rtlText]}>
-                  {i18n.language === 'ar' ? subcategory.titleAr || subcategory.titleEn : subcategory.titleEn}
-                </Text>
+                <View style={styles.itemTextContainer}>
+                  <Text style={[styles.subItemText, isRTL && styles.rtlText]}>
+                    {i18n.language === 'ar' ? subcategory.titleAr || subcategory.titleEn : subcategory.titleEn}
+                  </Text>
+                  {isBookmarked(subcategory.id, 'subcategory') && (
+                    <Icon 
+                      name="bookmark" 
+                      size={16} 
+                      color="#FF9800" 
+                      style={[
+                        styles.bookmarkIcon,
+                        isRTL ? { marginRight: 8, marginLeft: 0 } : { marginLeft: 8, marginRight: 0 }
+                      ]}
+                    />
+                  )}
+                </View>
                 <Icon 
                   name={isRTL ? 'keyboard-arrow-left' : 'keyboard-arrow-right'} 
                   size={20} 
@@ -396,6 +436,14 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#000',
     flex: 1,
+  },
+  itemTextContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  bookmarkIcon: {
+    marginLeft: 8,
   },
   emptyContainer: {
     alignItems: 'center',
