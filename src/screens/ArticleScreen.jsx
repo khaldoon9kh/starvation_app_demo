@@ -7,13 +7,30 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { useTranslation } from 'react-i18next';
+import { useBookmarks } from '../hooks/useFirebaseData';
 
 const ArticleScreen = ({route, navigation}) => {
-  const [isSaved, setIsSaved] = useState(false);
-  const {title} = route.params;
+  const { t, i18n } = useTranslation();
+  const { addBookmark, removeBookmark, isBookmarked } = useBookmarks();
+  const { title, category, subcategory } = route.params;
+  
+  const articleTitle = title || (i18n.language === 'ar' ? subcategory?.titleArabic || subcategory?.title : subcategory?.title) || 'Article';
+  const content = subcategory ? (i18n.language === 'ar' ? subcategory.contentAr || subcategory.contentEn : subcategory.contentEn || subcategory.contentAr) : 'Content not available';
+  
+  const itemIsBookmarked = subcategory ? isBookmarked(subcategory.id, 'subcategory') : false;
 
-  const toggleSave = () => {
-    setIsSaved(!isSaved);
+  const toggleSave = async () => {
+    if (!subcategory) return;
+    
+    if (itemIsBookmarked) {
+      await removeBookmark(subcategory.id, 'subcategory');
+    } else {
+      await addBookmark({
+        ...subcategory,
+        type: 'subcategory'
+      });
+    }
   };
 
   return (
@@ -26,7 +43,7 @@ const ArticleScreen = ({route, navigation}) => {
           <Icon name="arrow-back" size={24} color="#4CAF50" />
         </TouchableOpacity>
         
-        <Text style={styles.articleTitle}>{title}</Text>
+        <Text style={styles.articleTitle}>{articleTitle}</Text>
         
         <View style={styles.headerActions}>
           <TouchableOpacity style={styles.searchButton}>
@@ -36,7 +53,7 @@ const ArticleScreen = ({route, navigation}) => {
             style={styles.saveButton}
             onPress={toggleSave}>
             <Icon 
-              name={isSaved ? "bookmark" : "bookmark-border"} 
+              name={itemIsBookmarked ? "bookmark" : "bookmark-border"} 
               size={24} 
               color="#4CAF50" 
             />
@@ -46,11 +63,9 @@ const ArticleScreen = ({route, navigation}) => {
 
       {/* Article Content */}
       <ScrollView style={styles.content}>
-        <Text style={styles.sectionTitle}>Overview</Text>
+        <Text style={styles.sectionTitle}>{articleTitle}</Text>
         <Text style={styles.paragraph}>
-          This section provides comprehensive information about {title.toLowerCase()}. 
-          The content here would include detailed legal frameworks, procedural guidelines, 
-          and practical considerations for practitioners working in international criminal law.
+          {content || `This section provides comprehensive information about ${articleTitle.toLowerCase()}. Content will be loaded from Firebase when available.`}
         </Text>
 
         <Text style={styles.sectionTitle}>Key Elements</Text>
