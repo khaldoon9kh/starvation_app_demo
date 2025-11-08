@@ -76,19 +76,34 @@ const ArticleScreen = ({route, navigation}) => {
     setSelectedTerm(null);
   };
 
-  // Function to process content and replace {Term} with clickable components
+  // Function to process content with enhanced formatting
+  // Handles: 1) [display text](glossary_reference) for flexible glossary linking
+  //          2) --- for green horizontal divider lines
   const processContentWithTerms = (text) => {
     if (!text) return text;
     
-    // Replace {Term} patterns with markdown links that we can handle
-    return text.replace(/\{([^}]+)\}/g, (match, termName) => {
-      const term = findGlossaryTerm(termName);
-      if (term) {
-        // Use a special markdown link format that we can intercept
-        return `[${termName}](glossary://term/${encodeURIComponent(termName)})`;
+    let processedText = text;
+    
+    // 1. Handle glossary links: [display text](glossary_reference)
+    // Example: [International Human Rights Law](IHRL) becomes a clickable link
+    processedText = processedText.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, displayText, glossaryRef) => {
+      // Check if this is a glossary reference (not a regular URL like http:// or https://)
+      if (!glossaryRef.includes('://') && !glossaryRef.startsWith('http') && !glossaryRef.startsWith('mailto:')) {
+        const term = findGlossaryTerm(glossaryRef);
+        if (term) {
+          // Convert to internal glossary protocol for handling
+          return `[${displayText}](glossary://term/${encodeURIComponent(glossaryRef)})`;
+        }
       }
-      return match; // Return original if term not found
+      // Return original for regular links or non-existent glossary terms
+      return match;
     });
+    
+    // 2. Handle horizontal dividers: --- becomes a markdown horizontal rule
+    // This will be styled as a green line in the markdown styles
+    processedText = processedText.replace(/^---$/gm, '\n---\n');
+    
+    return processedText;
   };
   
   const itemIsBookmarked = subcategory ? isBookmarked(subcategory.id, 'subcategory') : false;
@@ -215,7 +230,7 @@ const ArticleScreen = ({route, navigation}) => {
             return true; // Allow normal links to be handled
           }}
         >
-          {processContentWithTerms(content) || `This section provides comprehensive information about **${articleTitle.toLowerCase()}**. Content will be loaded from Firebase when available.\n\n### Key Features\n- Dynamic content loading\n- Markdown formatting support\n- Multi-language support\n- Glossary term highlighting\n\n### Sample Content\nWhen conducting an {Investigation}, it's important to identify cases of {Malnutrition} early. Click on the highlighted terms to see their definitions from the glossary.\n\nThis demonstrates how {Sample Term} highlighting works in the content.`}
+          {processContentWithTerms(content) || `This section provides comprehensive information about **${articleTitle.toLowerCase()}**. Content will be loaded from Firebase when available.\n\n### Key Features\n- Dynamic content loading\n- Markdown formatting support\n- Multi-language support\n- Enhanced glossary term linking\n- Green horizontal dividers\n\n---\n\n### Sample Content\nWhen conducting an [investigation](Investigation), it's important to identify cases of [malnutrition](malnutrition-1) early. Click on the highlighted terms to see their definitions from the glossary.\n\nThis demonstrates how [flexible glossary linking](Sample Term) works in the content with different display text.\n\n---\n\n**Key Sources**\n\n[Starvation Manual](starvation-manual), p. 11.`}
         </Markdown>
 
         <Text style={[
@@ -593,6 +608,13 @@ const markdownStyles = {
   td: {
     padding: 12,
   },
+  // Horizontal rule - green divider line
+  hr: {
+    height: 2,
+    backgroundColor: '#4CAF50',
+    marginVertical: 16,
+    borderRadius: 1,
+  },
 };
 
 // RTL-specific markdown styles
@@ -657,6 +679,13 @@ const rtlMarkdownStyles = {
     borderRightWidth: 4,
     borderRightColor: '#4CAF50',
     textAlign: 'right',
+  },
+  // Horizontal rule maintains same green styling for RTL
+  hr: {
+    height: 2,
+    backgroundColor: '#4CAF50',
+    marginVertical: 16,
+    borderRadius: 1,
   },
 };
 
