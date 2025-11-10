@@ -113,11 +113,27 @@ export const downloadAllTemplates = async () => {
  */
 const downloadTemplateFile = async (template) => {
   try {
-    // Use the correct field name for the download URL
-    const fileUrl = template.pdfUrl;
+    // Try new secure URL system first (Firebase Storage with paths)
+    let fileUrl = null;
+    
+    if (template.pdfFilePath) {
+      try {
+        const { getTemplateDocumentUrl } = await import('./firebase');
+        fileUrl = await getTemplateDocumentUrl(template.pdfFilePath);
+        console.log('✅ Using secure URL from pdfFilePath');
+      } catch (error) {
+        console.warn('⚠️ Failed to generate secure URL from pdfFilePath:', error);
+      }
+    }
+    
+    // Fallback to legacy pdfUrl field if new system not available
+    if (!fileUrl && template.pdfUrl) {
+      fileUrl = template.pdfUrl;
+      console.log('✅ Using legacy URL from pdfUrl field');
+    }
     
     if (!fileUrl) {
-      console.log(`❌ Template ${template.id} has no pdfUrl`);
+      console.log(`❌ Template ${template.id} has no pdfUrl or pdfFilePath`);
       return null;
     }
 

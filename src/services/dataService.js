@@ -624,6 +624,84 @@ export const getSearchSuggestions = async (partialTerm) => {
   }
 };
 
+// ==================== SECURE FILE URL HELPERS ====================
+
+/**
+ * Transform diagram with secure image URL
+ * Reads imageFilePath from Firestore and generates temporary download URL
+ * Falls back to imageUrl if imageFilePath not available (backward compatibility)
+ */
+export const transformDiagramWithSecureUrl = async (diagram) => {
+  try {
+    // Check if new field-based URL system is available
+    if (diagram.imageFilePath) {
+      const { getDiagramImageUrl, getDiagramImageUrlFallback } = await import('./firebase');
+      const secureImageUrl = await getDiagramImageUrlFallback(diagram.imageFilePath, diagram.imageUrl);
+      return {
+        ...diagram,
+        imageUrl: secureImageUrl || diagram.imageUrl, // Fallback to old URL if generation fails
+        imagePath: diagram.imageFilePath // Keep path reference for logging
+      };
+    }
+    
+    // Fallback to existing imageUrl field (backward compatibility)
+    return diagram;
+  } catch (error) {
+    console.error('Error transforming diagram:', error);
+    return diagram; // Return original if transformation fails
+  }
+};
+
+/**
+ * Transform template with secure PDF URL
+ * Reads pdfFilePath from Firestore and generates temporary download URL
+ * Falls back to pdfUrl if pdfFilePath not available (backward compatibility)
+ */
+export const transformTemplateWithSecureUrl = async (template) => {
+  try {
+    // Check if new field-based URL system is available
+    if (template.pdfFilePath) {
+      const { getTemplateDocumentUrl, getTemplateDocumentUrlFallback } = await import('./firebase');
+      const securePdfUrl = await getTemplateDocumentUrlFallback(template.pdfFilePath, template.pdfUrl);
+      return {
+        ...template,
+        pdfUrl: securePdfUrl || template.pdfUrl, // Fallback to old URL if generation fails
+        pdfPath: template.pdfFilePath // Keep path reference for logging
+      };
+    }
+    
+    // Fallback to existing pdfUrl field (backward compatibility)
+    return template;
+  } catch (error) {
+    console.error('Error transforming template:', error);
+    return template; // Return original if transformation fails
+  }
+};
+
+/**
+ * Transform multiple diagrams with secure URLs (batch operation)
+ */
+export const transformDiagramsWithSecureUrls = async (diagrams) => {
+  try {
+    return await Promise.all(diagrams.map(diagram => transformDiagramWithSecureUrl(diagram)));
+  } catch (error) {
+    console.error('Error transforming diagrams:', error);
+    return diagrams; // Return originals if batch transformation fails
+  }
+};
+
+/**
+ * Transform multiple templates with secure URLs (batch operation)
+ */
+export const transformTemplatesWithSecureUrls = async (templates) => {
+  try {
+    return await Promise.all(templates.map(template => transformTemplateWithSecureUrl(template)));
+  } catch (error) {
+    console.error('Error transforming templates:', error);
+    return templates; // Return originals if batch transformation fails
+  }
+};
+
 // ==================== FALLBACK DATA FOR DEVELOPMENT ====================
 
 /**

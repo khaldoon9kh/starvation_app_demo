@@ -64,16 +64,21 @@ const SettingsScreen = ({ navigation, route }) => {
       setDownloading(true);
       setDownloadProgress(t('settingsScreen.preparingDownload', 'Preparing download...'));
       
-      // Fetch all content from Firebase
+      // Fetch all content metadata from Firebase
       setDownloadProgress(t('settingsScreen.fetchingData', 'Fetching latest content...'));
       const contentData = await getAllContentForCache();
       
+      // Store content metadata
       setDownloadProgress(t('settingsScreen.savingData', 'Saving content locally...'));
-      
-      // Store content data in the new key for dataStore to load
       await AsyncStorage.setItem(CONTENT_DATA_KEY, JSON.stringify(contentData));
-      await AsyncStorage.setItem(CONTENT_STATUS_KEY, 'downloaded');
       
+      // Download template files to device storage
+      setDownloadProgress(t('settingsScreen.downloadingTemplates', 'Downloading template files...'));
+      const { downloadAllTemplates } = await import('../services/templateManager');
+      await downloadAllTemplates();
+      
+      // Mark download as complete
+      await AsyncStorage.setItem(CONTENT_STATUS_KEY, 'downloaded');
       setContentStatus('downloaded');
       setDownloadProgress('');
       
@@ -109,14 +114,20 @@ const SettingsScreen = ({ navigation, route }) => {
       setDownloading(true);
       setDownloadProgress(t('settingsScreen.preparingDownload', 'Preparing download...'));
       
-      // Fetch all content from Firebase
+      // Fetch all content metadata from Firebase
       setDownloadProgress(t('settingsScreen.fetchingData', 'Fetching latest content...'));
       const contentData = await getAllContentForCache();
       
+      // Store content metadata
       setDownloadProgress(t('settingsScreen.savingData', 'Saving content locally...'));
-      
-      // Update the cached data
       await AsyncStorage.setItem(CONTENT_DATA_KEY, JSON.stringify(contentData));
+      
+      // Download/update template files to device storage
+      setDownloadProgress(t('settingsScreen.downloadingTemplates', 'Downloading template files...'));
+      const { downloadAllTemplates } = await import('../services/templateManager');
+      await downloadAllTemplates();
+      
+      // Mark update as complete
       await AsyncStorage.setItem(CONTENT_STATUS_KEY, 'downloaded');
       
       setContentStatus('downloaded');

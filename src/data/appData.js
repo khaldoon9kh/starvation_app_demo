@@ -39,10 +39,14 @@ export const getTemplatesData = () => {
     description: template.description,
     descriptionArabic: template.descriptionArabic,
     category: template.category,
-    color: '#4CAF50', // Default color
     pdfUrl: template.pdfUrl,
+    pdfPath: template.pdfPath, // Firebase Storage path (new secure system)
+    pdfFilePath: template.pdfFilePath, // Firestore field (new secure system)
     pdfFileName: template.pdfFileName,
-    pdfOriginalName: template.pdfOriginalName
+    pdfOriginalName: template.pdfOriginalName,
+    pdfSize: template.pdfSize,
+    fileType: template.fileType,
+    fileExtension: template.fileExtension
   }));
 };
 
@@ -67,6 +71,11 @@ export const getDiagramsData = () => {
     description: diagram.description,
     descriptionArabic: diagram.descriptionArabic,
     imageUrl: diagram.imageUrl,
+    imagePath: diagram.imagePath, // Firebase Storage path (new secure system)
+    imageFilePath: diagram.imageFilePath, // Firestore field (new secure system)
+    imageFileName: diagram.imageFileName,
+    imageOriginalName: diagram.imageOriginalName,
+    imageSize: diagram.imageSize,
     category: diagram.category
   }));
 };

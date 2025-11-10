@@ -121,8 +121,22 @@ const CategoryTemplatesScreen = ({ route, navigation }) => {
     return colors[Math.abs(hash) % colors.length];
   };
 
-  const handleTemplatePress = (template) => {
-    if (!template.hasFile || !template.localPath) {
+  const handleTemplatePress = async (template) => {
+    // Check if template has local file info
+    // If not from cache, check downloaded templates storage
+    let hasLocalFile = template.hasFile && template.localPath;
+    
+    if (!hasLocalFile) {
+      try {
+        const downloadedTemplates = await getLocalTemplates();
+        const downloaded = downloadedTemplates[template.id];
+        hasLocalFile = downloaded && downloaded.hasFile && downloaded.localPath;
+      } catch (error) {
+        console.error('Error checking downloaded templates:', error);
+      }
+    }
+    
+    if (!hasLocalFile) {
       // Template file not available
       Alert.alert(
         t('templates.fileNotAvailable', 'File Not Available'),
@@ -170,7 +184,28 @@ const CategoryTemplatesScreen = ({ route, navigation }) => {
     try {
       console.log(`🎯 Opening template: ${getTemplateTitle(template)}`);
       
-      await openLocalTemplate(template);
+      // Check if template has local path info
+      // If not, try to get it from the downloaded templates storage
+      let templateWithLocalPath = template;
+      
+      if (!template.localPath || !template.hasFile) {
+        console.log('📦 Template missing local path info, checking downloaded templates...');
+        const downloadedTemplates = await getLocalTemplates();
+        const downloaded = downloadedTemplates[template.id];
+        
+        if (downloaded && downloaded.localPath && downloaded.hasFile) {
+          console.log('✅ Found template in downloaded storage');
+          templateWithLocalPath = {
+            ...template,
+            localPath: downloaded.localPath,
+            hasFile: downloaded.hasFile
+          };
+        } else {
+          throw new Error('Template file is not available locally');
+        }
+      }
+      
+      await openLocalTemplate(templateWithLocalPath);
       
       console.log('✅ Template opened successfully');
     } catch (error) {
