@@ -100,6 +100,96 @@ class DataStore {
     }
   }
 
+  // Force reload data from AsyncStorage (after content update)
+  async reloadFromCache() {
+    console.log('🔄 Reloading data from AsyncStorage...');
+    this.loading = true;
+    this.notifyListeners();
+    
+    try {
+      // Load from app_content_data key (used by Settings download)
+      const contentData = await AsyncStorage.getItem('app_content_data');
+      
+      if (contentData) {
+        const data = JSON.parse(contentData);
+        
+        // Check if subcategories is an array (from getAllSubcategories) or already an object
+        let subcategoriesObj = {};
+        if (Array.isArray(data.subcategories)) {
+          // Convert flat array to hierarchical grouped object by categoryId
+          console.log('📝 Converting subcategories array to hierarchical object...');
+          
+          // First pass: separate level 1 and level 2 items
+          const level1Items = data.subcategories.filter(sub => sub.level === 1 || !sub.level);
+          const level2Items = data.subcategories.filter(sub => sub.level === 2);
+          
+          // Group level 1 items by categoryId
+          level1Items.forEach(sub => {
+            if (!subcategoriesObj[sub.categoryId]) {
+              subcategoriesObj[sub.categoryId] = [];
+            }
+            
+            // Find all sub-subcategories for this subcategory
+            const subSubCategories = level2Items
+              .filter(item => item.parentSubcategoryId === sub.id)
+              .sort((a, b) => (a.order || 0) - (b.order || 0));
+            
+            // Add subcategory with its sub-subcategories
+            subcategoriesObj[sub.categoryId].push({
+              ...sub,
+              subSubCategories
+            });
+          });
+          
+          // Sort subcategories by order within each category
+          Object.keys(subcategoriesObj).forEach(categoryId => {
+            subcategoriesObj[categoryId].sort((a, b) => (a.order || 0) - (b.order || 0));
+          });
+          
+        } else if (typeof data.subcategories === 'object') {
+          // Already in object format
+          subcategoriesObj = data.subcategories;
+        }
+        
+        console.log('📦 Loaded fresh data:', {
+          categories: data.categories?.length || 0,
+          subcategories: Object.keys(subcategoriesObj).length,
+          totalSubcategories: Array.isArray(data.subcategories) ? data.subcategories.length : Object.values(subcategoriesObj).flat().length,
+          glossary: data.glossary?.length || 0,
+          diagrams: data.diagrams?.length || 0,
+          templates: data.templates?.length || 0
+        });
+        
+        this.categories = data.categories || [];
+        this.subcategories = subcategoriesObj;
+        this.glossaryTerms = data.glossary || [];
+        this.diagrams = data.diagrams || [];
+        this.templates = data.templates || [];
+        this.lastUpdated = new Date().toISOString();
+        
+        // Also update the appData cache
+        await this.saveToCache();
+        
+        this.loading = false;
+        this.notifyListeners();
+        
+        console.log('✅ Data reloaded successfully');
+        return true;
+      } else {
+        console.warn('⚠️ No content data found in AsyncStorage');
+        this.loading = false;
+        this.notifyListeners();
+        return false;
+      }
+    } catch (error) {
+      console.error('❌ Error reloading data from cache:', error);
+      this.loading = false;
+      this.error = error.message;
+      this.notifyListeners();
+      return false;
+    }
+  }
+
   // Initialize data - load from cache first, then sync with Firebase only if offline mode disabled
   async initialize() {
     this.loading = true;

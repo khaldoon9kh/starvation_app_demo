@@ -86,6 +86,17 @@ const SettingsScreen = ({ navigation, route }) => {
       setContentStatus('downloaded');
       setDownloadProgress('');
       
+      // Reload dataStore from AsyncStorage to refresh all screens
+      setDownloadProgress(t('settingsScreen.reloadingApp', 'Reloading app...'));
+      const dataStore = await import('../services/dataStore');
+      await dataStore.default.reloadFromCache();
+      
+      // Navigate to splash screen to force complete app refresh
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Home' }],
+      });
+      
       // Show success message
       Alert.alert(
         t('settingsScreen.downloadComplete', 'Download Complete'),
@@ -141,10 +152,21 @@ const SettingsScreen = ({ navigation, route }) => {
       setContentStatus('downloaded');
       setDownloadProgress('');
       
+      // Reload dataStore from AsyncStorage to refresh all screens
+      setDownloadProgress(t('settingsScreen.reloadingApp', 'Reloading app...'));
+      const dataStore = await import('../services/dataStore');
+      await dataStore.default.reloadFromCache();
+      
+      // Navigate to splash/loading screen to force complete app refresh
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Splash' }],
+      });
+      
       // Show success message
       Alert.alert(
         t('settingsScreen.refreshComplete', 'Content Updated'),
-        t('settingsScreen.refreshSuccessMessage', 'Your content has been successfully updated to the latest version.'),
+        t('settingsScreen.refreshSuccessMessage', 'Content has been updated. The app will restart.'),
         [
           { 
             text: t('common.ok', 'OK'), 
