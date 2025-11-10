@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -8,22 +8,54 @@ import {
   Modal,
   Dimensions,
   Alert,
+  Image,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import Markdown from 'react-native-markdown-display';
 import { useTranslation } from 'react-i18next';
-import { useBookmarks, useGlossary } from '../hooks/useFirebaseData';
+import { useBookmarks, useGlossary, useDiagrams } from '../hooks/useFirebaseData';
+import * as FileSystem from 'expo-file-system';
 
 const ArticleScreen = ({route, navigation}) => {
   const { t, i18n } = useTranslation();
   const { addBookmark, removeBookmark, isBookmarked } = useBookmarks();
   const { glossaryTerms } = useGlossary();
+  const { diagrams } = useDiagrams();
   const { title, category, subcategory } = route.params;
   const isRTL = i18n.language === 'ar';
   
   // Modal state for glossary popup
   const [selectedTerm, setSelectedTerm] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  
+  // Local diagrams state (downloaded images)
+  const [localDiagrams, setLocalDiagrams] = useState({});
+  const [diagramsLoaded, setDiagramsLoaded] = useState(false);
+  
+  // Load local diagrams on mount
+  useEffect(() => {
+    const loadLocalDiagrams = async () => {
+      try {
+        const { getLocalDiagrams } = await import('../services/templateManager');
+        const downloaded = await getLocalDiagrams();
+        setLocalDiagrams(downloaded);
+        setDiagramsLoaded(true);
+        console.log(`📥 Loaded ${Object.keys(downloaded).length} local diagrams`);
+        console.log(`📁 Document directory: ${FileSystem.documentDirectory}`);
+        
+        // Debug: Log first diagram path if available
+        const firstDiagram = Object.values(downloaded)[0];
+        if (firstDiagram) {
+          console.log(`📍 Sample diagram path: ${firstDiagram.localPath}`);
+        }
+      } catch (error) {
+        console.error('Error loading local diagrams:', error);
+        setDiagramsLoaded(true); // Set to true even on error to avoid infinite loading
+      }
+    };
+    
+    loadLocalDiagrams();
+  }, []);
   
   // Debug logging
   console.log('📖 ArticleScreen received data:', {
@@ -71,15 +103,133 @@ const ArticleScreen = ({route, navigation}) => {
     setSelectedTerm(null);
   };
 
+  // Helper function to find diagram by reference and return local path
+  const findDiagramByReference = (reference) => {
+    if (!reference) {
+      console.log(`❌ findDiagramByReference called with empty reference`);
+      return null;
+    }
+    
+    console.log(`🔍 Looking for diagram with reference: "${reference}"`);
+    console.log(`📦 Local diagrams available:`, Object.values(localDiagrams).map(d => ({
+      reference: d.reference,
+      hasLocalPath: !!d.localPath
+    })));
+    
+    // First check local downloaded diagrams (OFFLINE FIRST)
+    const localDiagram = Object.values(localDiagrams).find(d => {
+      console.log(`  Comparing "${d.reference}" === "${reference}": ${d.reference === reference}`);
+      return d.reference === reference;
+    });
+    
+    if (localDiagram && localDiagram.localPath) {
+      console.log(`✅ Found local diagram: ${reference} at ${localDiagram.localPath}`);
+      return {
+        ...localDiagram,
+        imageUrl: localDiagram.localPath // Use local path for offline access
+      };
+    } else if (localDiagram) {
+      console.log(`⚠️ Found diagram ${reference} but no localPath`);
+    } else {
+      console.log(`❌ No local diagram found for reference: ${reference}`);
+    }
+    
+    // Fallback to Firebase diagrams (ONLINE)
+    if (diagrams && diagrams.length > 0) {
+      const diagram = diagrams.find(d => d.reference === reference);
+      if (diagram) {
+        console.log(`⚠️ Using online diagram: ${reference}`);
+        return diagram;
+      }
+    }
+    
+    return null;
+  };
+
   // Function to process content with enhanced formatting
-  // Handles: 1) [display text](glossary_reference) for flexible glossary linking
-  //          2) --- for green horizontal divider lines
+  // Handles: 1) ![description](diagram_reference) for diagram embedding (OFFLINE FIRST)
+  //          2) [display text](glossary_reference) for flexible glossary linking
+  //          3) --- for green horizontal divider lines
   const processContentWithTerms = (text) => {
     if (!text) return text;
     
     let processedText = text;
     
-    // 1. Handle glossary links: [display text](glossary_reference)
+    // 1. Handle diagram references: ![description](diagram_reference)
+    // Example: ![Supply Chain Diagram](supply_chain) embeds the diagram image
+    // Uses local cached images for full offline support
+    processedText = processedText.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (match, description, diagramRef) => {
+      // Skip if already a full URL or file path
+      if (diagramRef.includes('://')) {
+        return match;
+      }
+      
+      // Check if this is a direct filename (e.g., test1.png) or reference with extension
+      const hasExtension = diagramRef.match(/\.(png|jpg|jpeg|gif|webp)$/i);
+      const refWithoutExt = hasExtension ? diagramRef.replace(/\.(png|jpg|jpeg|gif|webp)$/i, '') : diagramRef;
+      
+      console.log(`🔍 Processing image reference: ${diagramRef} (without ext: ${refWithoutExt})`);
+      
+      if (hasExtension) {
+        console.log(`📦 Available local diagrams: ${Object.keys(localDiagrams).length}`);
+        
+        // Try to find in local diagrams by filename
+        const localDiagram = Object.values(localDiagrams).find(d => {
+          const matches = d.imageFileName === diagramRef || 
+                         d.imageOriginalName === diagramRef ||
+                         d.localPath?.endsWith(diagramRef);
+          if (matches) {
+            console.log(`✅ Matched diagram by filename:`, {
+              imageFileName: d.imageFileName,
+              imageOriginalName: d.imageOriginalName,
+              localPath: d.localPath
+            });
+          }
+          return matches;
+        });
+        
+        if (localDiagram && localDiagram.localPath) {
+          console.log(`🖼️ Found diagram by filename: ${diagramRef} at ${localDiagram.localPath}`);
+          return `![${description || diagramRef}](${localDiagram.localPath})`;
+        }
+        
+        // Try matching by reference (without extension)
+        const diagramByRef = findDiagramByReference(refWithoutExt);
+        if (diagramByRef && diagramByRef.localPath) {
+          console.log(`🖼️ Found diagram by reference (stripped ext): ${refWithoutExt} at ${diagramByRef.localPath}`);
+          return `![${description || diagramByRef.title || 'Diagram'}](${diagramByRef.localPath})`;
+        }
+        
+        // If not found in downloaded diagrams, construct path to diagrams directory
+        if (FileSystem && FileSystem.documentDirectory) {
+          const localPath = `${FileSystem.documentDirectory}diagrams/${diagramRef}`;
+          console.log(`🖼️ Using constructed path for image: ${localPath}`);
+          console.warn(`⚠️ Image ${diagramRef} not found in downloaded diagrams, using constructed path. Make sure to download content first!`);
+          return `![${description || diagramRef}](${localPath})`;
+        } else {
+          console.error(`❌ FileSystem.documentDirectory not available!`);
+          return match; // Return original if can't construct path
+        }
+      }
+      
+      // Otherwise treat as diagram reference (without extension)
+      const diagram = findDiagramByReference(diagramRef);
+      if (diagram) {
+        // Use localPath (offline) or imageUrl (online) or imagePath (fallback)
+        const imageUrl = diagram.localPath || diagram.imageUrl || diagram.imagePath;
+        if (imageUrl) {
+          console.log(`🖼️ Embedding diagram: ${diagramRef} from ${imageUrl}`);
+          return `![${description || diagram.title || 'Diagram'}](${imageUrl})`;
+        }
+      } else {
+        console.warn(`⚠️ Diagram not found: ${diagramRef}`);
+      }
+      
+      // Return original for non-existent diagrams
+      return match;
+    });
+    
+    // 2. Handle glossary links: [display text](glossary_reference)
     // Example: [International Human Rights Law](IHRL) becomes a clickable link
     processedText = processedText.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, displayText, glossaryRef) => {
       // Check if this is a glossary reference (not a regular URL like http:// or https://)
@@ -94,7 +244,7 @@ const ArticleScreen = ({route, navigation}) => {
       return match;
     });
     
-    // 2. Handle horizontal dividers: --- becomes a markdown horizontal rule
+    // 3. Handle horizontal dividers: --- becomes a markdown horizontal rule
     // This will be styled as a green line in the markdown styles
     processedText = processedText.replace(/^---$/gm, '\n---\n');
     
@@ -213,7 +363,10 @@ const ArticleScreen = ({route, navigation}) => {
           { textAlign: isRTL ? 'right' : 'left' }
         ]}>{articleTitle}</Text>
         
-        <Markdown 
+        {!diagramsLoaded ? (
+          <Text style={styles.text}>Loading diagrams...</Text>
+        ) : (
+          <Markdown 
           style={isRTL ? {...markdownStyles, ...rtlMarkdownStyles} : markdownStyles}
           onLinkPress={(url) => {
             // Handle glossary term links
@@ -224,9 +377,54 @@ const ArticleScreen = ({route, navigation}) => {
             }
             return true; // Allow normal links to be handled
           }}
+          rules={{
+            image: (node, children, parent, styles) => {
+              const { src, alt } = node.attributes;
+              
+              // Handle local file:// paths
+              if (src && src.startsWith('file://')) {
+                return (
+                  <View key={node.key} style={styles.image}>
+                    <Image
+                      source={{ uri: src }}
+                      style={{
+                        width: Dimensions.get('window').width - 40,
+                        height: 250,
+                        resizeMode: 'contain',
+                      }}
+                      onError={(error) => {
+                        console.error('Image load error:', error.nativeEvent.error);
+                      }}
+                    />
+                    {alt ? (
+                      <Text style={styles.text}>{alt}</Text>
+                    ) : null}
+                  </View>
+                );
+              }
+              
+              // Handle regular URLs
+              return (
+                <View key={node.key} style={styles.image}>
+                  <Image
+                    source={{ uri: src }}
+                    style={{
+                      width: Dimensions.get('window').width - 40,
+                      height: 250,
+                      resizeMode: 'contain',
+                    }}
+                  />
+                  {alt ? (
+                    <Text style={styles.text}>{alt}</Text>
+                  ) : null}
+                </View>
+              );
+            },
+          }}
         >
           {processContentWithTerms(content) || `This section provides comprehensive information about **${articleTitle.toLowerCase()}**. Content will be loaded from Firebase when available.\n\n### Key Features\n- Dynamic content loading\n- Markdown formatting support\n- Multi-language support\n- Enhanced glossary term linking\n- Green horizontal dividers\n\n---\n\n### Sample Content\nWhen conducting an [investigation](Investigation), it's important to identify cases of [malnutrition](malnutrition-1) early. Click on the highlighted terms to see their definitions from the glossary.\n\nThis demonstrates how [flexible glossary linking](Sample Term) works in the content with different display text.\n\n---\n\n**Key Sources**\n\n[Starvation Manual](starvation-manual), p. 11.`}
-        </Markdown>
+          </Markdown>
+        )}
 
         <Text style={[
           styles.sectionTitle,
@@ -609,6 +807,15 @@ const markdownStyles = {
     backgroundColor: '#4CAF50',
     marginVertical: 16,
     borderRadius: 1,
+  },
+  // Image styles
+  image: {
+    width: Dimensions.get('window').width - 40, // Account for padding
+    height: 250,
+    resizeMode: 'contain',
+    marginVertical: 15,
+    borderRadius: 8,
+    backgroundColor: '#f8f9fa',
   },
 };
 

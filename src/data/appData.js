@@ -66,6 +66,7 @@ export const getDiagramsData = () => {
   const state = dataStore.getState();
   return state.diagrams.map(diagram => ({
     id: diagram.id,
+    reference: diagram.reference, // Unique identifier for markdown embedding
     title: diagram.title,
     titleArabic: diagram.titleArabic,
     description: diagram.description,
@@ -76,7 +77,7 @@ export const getDiagramsData = () => {
     imageFileName: diagram.imageFileName,
     imageOriginalName: diagram.imageOriginalName,
     imageSize: diagram.imageSize,
-    category: diagram.category
+    category: diagram.category // Legacy field, use reference instead
   }));
 };
 

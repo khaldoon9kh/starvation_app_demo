@@ -74,8 +74,12 @@ const SettingsScreen = ({ navigation, route }) => {
       
       // Download template files to device storage
       setDownloadProgress(t('settingsScreen.downloadingTemplates', 'Downloading template files...'));
-      const { downloadAllTemplates } = await import('../services/templateManager');
+      const { downloadAllTemplates, downloadAllDiagrams } = await import('../services/templateManager');
       await downloadAllTemplates();
+      
+      // Download diagram images to device storage
+      setDownloadProgress(t('settingsScreen.downloadingDiagrams', 'Downloading diagram images...'));
+      await downloadAllDiagrams();
       
       // Mark download as complete
       await AsyncStorage.setItem(CONTENT_STATUS_KEY, 'downloaded');
@@ -124,8 +128,12 @@ const SettingsScreen = ({ navigation, route }) => {
       
       // Download/update template files to device storage
       setDownloadProgress(t('settingsScreen.downloadingTemplates', 'Downloading template files...'));
-      const { downloadAllTemplates } = await import('../services/templateManager');
+      const { downloadAllTemplates, downloadAllDiagrams } = await import('../services/templateManager');
       await downloadAllTemplates();
+      
+      // Download/update diagram images to device storage
+      setDownloadProgress(t('settingsScreen.downloadingDiagrams', 'Downloading diagram images...'));
+      await downloadAllDiagrams();
       
       // Mark update as complete
       await AsyncStorage.setItem(CONTENT_STATUS_KEY, 'downloaded');

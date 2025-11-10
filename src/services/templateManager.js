@@ -1,10 +1,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
-import { getTemplates } from './dataService';
+import { getTemplates, getDiagrams } from './dataService';
 
 const TEMPLATES_STORAGE_KEY = 'downloaded_templates';
 const TEMPLATES_METADATA_KEY = 'templates_metadata';
+const DIAGRAMS_STORAGE_KEY = 'downloaded_diagrams';
+const DIAGRAMS_METADATA_KEY = 'diagrams_metadata';
 
 // ==================== LOCAL TEMPLATE STORAGE ====================
 
@@ -408,6 +410,280 @@ export const updateTemplates = async () => {
     }
   } catch (error) {
     console.error('Error updating templates:', error);
+    throw error;
+  }
+};
+
+// ==================== LOCAL DIAGRAM STORAGE ====================
+
+/**
+ * Download and store all diagram images locally
+ */
+export const downloadAllDiagrams = async () => {
+  try {
+    console.log('🖼️ Starting diagram download...');
+    
+    // Fetch all diagrams from Firebase
+    const diagrams = await getDiagrams();
+    console.log(`📊 Found ${diagrams.length} diagrams to download`);
+    
+    const downloadedDiagrams = {};
+    const diagramsMetadata = [];
+    
+    for (const diagram of diagrams) {
+      try {
+        // Download diagram image to local storage
+        const localPath = await downloadDiagramImage(diagram);
+        const hasFile = localPath !== null;
+        
+        // Store diagram metadata and file path
+        const diagramData = {
+          ...diagram,
+          localPath,
+          downloadedAt: new Date().toISOString(),
+          isDownloaded: true,
+          hasFile
+        };
+        
+        downloadedDiagrams[diagram.id] = diagramData;
+        diagramsMetadata.push({
+          id: diagram.id,
+          reference: diagram.reference,
+          title: diagram.title,
+          titleArabic: diagram.titleArabic,
+          imageFileName: diagram.imageFileName,
+          imageOriginalName: diagram.imageOriginalName,
+          imageSize: diagram.imageSize,
+          downloadedAt: diagramData.downloadedAt,
+          isDownloaded: diagramData.isDownloaded,
+          hasFile: diagramData.hasFile,
+          localPath: diagramData.localPath
+        });
+        
+        console.log(`✅ Downloaded diagram: ${diagram.title || diagram.reference}`);
+      } catch (error) {
+        console.error(`❌ Error downloading diagram ${diagram.id}:`, error);
+        
+        // Store diagram metadata even if download failed
+        const diagramData = {
+          ...diagram,
+          localPath: null,
+          downloadedAt: new Date().toISOString(),
+          isDownloaded: true, // Mark as processed
+          hasFile: false,
+          downloadError: error.message
+        };
+        
+        downloadedDiagrams[diagram.id] = diagramData;
+        diagramsMetadata.push({
+          id: diagram.id,
+          reference: diagram.reference,
+          title: diagram.title,
+          titleArabic: diagram.titleArabic,
+          imageFileName: diagram.imageFileName,
+          imageOriginalName: diagram.imageOriginalName,
+          imageSize: diagram.imageSize,
+          downloadedAt: diagramData.downloadedAt,
+          isDownloaded: true,
+          hasFile: false,
+          localPath: null,
+          downloadError: error.message
+        });
+      }
+    }
+    
+    // Store all diagrams and metadata locally
+    await AsyncStorage.setItem(DIAGRAMS_STORAGE_KEY, JSON.stringify(downloadedDiagrams));
+    await AsyncStorage.setItem(DIAGRAMS_METADATA_KEY, JSON.stringify(diagramsMetadata));
+    
+    console.log('💾 Diagrams stored locally successfully');
+    return { 
+      success: true, 
+      totalDiagrams: diagrams.length, 
+      downloadedCount: Object.values(downloadedDiagrams).filter(d => d.isDownloaded).length 
+    };
+  } catch (error) {
+    console.error('Error downloading diagrams:', error);
+    throw error;
+  }
+};
+
+/**
+ * Download individual diagram image to device storage
+ */
+const downloadDiagramImage = async (diagram) => {
+  try {
+    // Try new secure URL system first (Firebase Storage with paths)
+    let imageUrl = null;
+    
+    if (diagram.imageFilePath) {
+      try {
+        const { getDiagramImageUrl } = await import('./firebase');
+        imageUrl = await getDiagramImageUrl(diagram.imageFilePath);
+        console.log('✅ Using secure URL from imageFilePath');
+      } catch (error) {
+        console.warn('⚠️ Failed to generate secure URL from imageFilePath:', error);
+      }
+    }
+    
+    // Fallback to legacy imageUrl field if new system not available
+    if (!imageUrl && diagram.imageUrl) {
+      imageUrl = diagram.imageUrl;
+      console.log('✅ Using legacy URL from imageUrl field');
+    }
+    
+    if (!imageUrl) {
+      console.log(`❌ Diagram ${diagram.id} has no imageUrl or imageFilePath`);
+      return null;
+    }
+
+    // Use imageFileName from Firebase Storage (already unique and clean)
+    // This ensures the local filename matches what's in Firebase Storage
+    const fileName = diagram.imageFileName || 
+                    diagram.imageOriginalName ||
+                    (diagram.reference || diagram.title || `diagram_${diagram.id}`) + '.png';
+    
+    // Don't clean imageFileName since it's already a valid Firebase Storage name
+    // Only clean if we fall back to imageOriginalName
+    const cleanFileName = diagram.imageFileName ? fileName : fileName.replace(/[^a-zA-Z0-9._-]/g, '_');
+    
+    // Create local file path in document directory
+    const localUri = `${FileSystem.documentDirectory}diagrams/${cleanFileName}`;
+    
+    console.log(`🖼️ Downloading: ${diagram.title || diagram.reference}`);
+    console.log(`📄 Original: ${diagram.imageOriginalName}`);
+    console.log(`🔗 From: ${imageUrl}`);
+    console.log(`💾 To: ${localUri}`);
+    console.log(`📊 Size: ${diagram.imageSize} bytes`);
+    
+    // Create diagrams directory if it doesn't exist
+    const diagramsDir = `${FileSystem.documentDirectory}diagrams/`;
+    const dirInfo = await FileSystem.getInfoAsync(diagramsDir);
+    if (!dirInfo.exists) {
+      await FileSystem.makeDirectoryAsync(diagramsDir, { intermediates: true });
+      console.log('📁 Created diagrams directory');
+    }
+    
+    // Download the file
+    const downloadResult = await FileSystem.downloadAsync(imageUrl, localUri);
+    
+    if (downloadResult.status === 200) {
+      console.log(`✅ Diagram downloaded successfully to: ${localUri}`);
+      
+      // Convert to base64 for React Native Image component
+      try {
+        const base64 = await FileSystem.readAsStringAsync(localUri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+        
+        // Determine MIME type from file extension
+        const extension = cleanFileName.split('.').pop().toLowerCase();
+        const mimeTypes = {
+          'jpg': 'image/jpeg',
+          'jpeg': 'image/jpeg',
+          'png': 'image/png',
+          'gif': 'image/gif',
+          'webp': 'image/webp'
+        };
+        const mimeType = mimeTypes[extension] || 'image/jpeg';
+        
+        // Return base64 data URI
+        const base64Uri = `data:${mimeType};base64,${base64}`;
+        console.log(`✅ Converted to base64 (${base64.length} chars)`);
+        return base64Uri;
+      } catch (base64Error) {
+        console.error('Error converting to base64:', base64Error);
+        // Fallback to file URI if base64 conversion fails
+        return localUri;
+      }
+    } else {
+      console.error(`❌ Download failed with status: ${downloadResult.status}`);
+      return null;
+    }
+  } catch (error) {
+    console.error('Error downloading diagram image:', error);
+    return null;
+  }
+};
+
+/**
+ * Get all downloaded diagrams from local storage
+ */
+export const getLocalDiagrams = async () => {
+  try {
+    const diagramsJson = await AsyncStorage.getItem(DIAGRAMS_STORAGE_KEY);
+    if (diagramsJson) {
+      return JSON.parse(diagramsJson);
+    }
+    return {};
+  } catch (error) {
+    console.error('Error reading local diagrams:', error);
+    return {};
+  }
+};
+
+/**
+ * Get diagram by reference from local storage
+ */
+export const getLocalDiagramByReference = async (reference) => {
+  try {
+    const diagrams = await getLocalDiagrams();
+    const diagram = Object.values(diagrams).find(d => d.reference === reference);
+    return diagram || null;
+  } catch (error) {
+    console.error('Error getting local diagram by reference:', error);
+    return null;
+  }
+};
+
+/**
+ * Clear all downloaded diagrams
+ */
+export const clearLocalDiagrams = async () => {
+  try {
+    // Remove from AsyncStorage
+    await AsyncStorage.removeItem(DIAGRAMS_STORAGE_KEY);
+    await AsyncStorage.removeItem(DIAGRAMS_METADATA_KEY);
+    
+    // Delete diagram files from filesystem
+    const diagramsDir = `${FileSystem.documentDirectory}diagrams/`;
+    const dirInfo = await FileSystem.getInfoAsync(diagramsDir);
+    if (dirInfo.exists) {
+      await FileSystem.deleteAsync(diagramsDir, { idempotent: true });
+      console.log('🗑️ Deleted diagrams directory');
+    }
+    
+    console.log('✅ Local diagrams cleared');
+    return { success: true };
+  } catch (error) {
+    console.error('Error clearing local diagrams:', error);
+    throw error;
+  }
+};
+
+/**
+ * Update diagrams if needed (check for changes)
+ */
+export const updateDiagrams = async () => {
+  try {
+    // Check if we have local diagrams
+    const localDiagrams = await getLocalDiagrams();
+    
+    // Get latest diagrams from Firebase
+    const latestDiagrams = await getDiagrams();
+    
+    // Check if update is needed (simple version - compare count)
+    const needsUpdate = Object.keys(localDiagrams).length !== latestDiagrams.length;
+    
+    if (needsUpdate) {
+      console.log('🔄 Diagrams update needed, downloading...');
+      return await downloadAllDiagrams();
+    } else {
+      console.log('✅ Diagrams are up to date');
+      return { success: true, message: 'Diagrams are up to date' };
+    }
+  } catch (error) {
+    console.error('Error updating diagrams:', error);
     throw error;
   }
 };
