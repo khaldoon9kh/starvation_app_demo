@@ -68,24 +68,27 @@ export const useGlossary = () => {
   const getFallbackGlossary = () => [
     {
       id: 'sample-term-1',
-      titleEn: 'Sample Term',
-      titleAr: 'مصطلح عينة',
-      definitionEn: 'This is a sample definition to demonstrate the glossary functionality. Click on highlighted terms to see their definitions.',
-      definitionAr: 'هذا تعريف عينة لتوضيح وظيفة المسرد. انقر على المصطلحات المميزة لرؤية تعريفاتها.'
+      reference: 'sample-term-1',
+      term: 'Sample Term',
+      termArabic: 'مصطلح عينة',
+      definition: 'This is a sample definition to demonstrate the glossary functionality. Click on highlighted terms to see their definitions.',
+      definitionArabic: 'هذا تعريف عينة لتوضيح وظيفة المسرد. انقر على المصطلحات المميزة لرؤية تعريفاتها.'
     },
     {
       id: 'investigation-1',
-      titleEn: 'Investigation',
-      titleAr: 'تحقيق',
-      definitionEn: 'A systematic examination or inquiry to discover facts, gather evidence, and determine the truth about a particular matter.',
-      definitionAr: 'فحص أو استقصاء منهجي لاكتشاف الحقائق وجمع الأدلة وتحديد الحقيقة حول مسألة معينة.'
+      reference: 'Investigation',
+      term: 'Investigation',
+      termArabic: 'تحقيق',
+      definition: 'A systematic examination or inquiry to discover facts, gather evidence, and determine the truth about a particular matter.',
+      definitionArabic: 'فحص أو استقصاء منهجي لاكتشاف الحقائق وجمع الأدلة وتحديد الحقيقة حول مسألة معينة.'
     },
     {
       id: 'malnutrition-1',
-      titleEn: 'Malnutrition',
-      titleAr: 'سوء التغذية',
-      definitionEn: 'A condition that occurs when the body does not get enough nutrients or gets too much of certain nutrients, leading to health problems.',
-      definitionAr: 'حالة تحدث عندما لا يحصل الجسم على ما يكفي من العناصر الغذائية أو يحصل على الكثير من عناصر غذائية معينة، مما يؤدي إلى مشاكل صحية.'
+      reference: 'malnutrition-1',
+      term: 'Malnutrition',
+      termArabic: 'سوء التغذية',
+      definition: 'A condition that occurs when the body does not get enough nutrients or gets too much of certain nutrients, leading to health problems.',
+      definitionArabic: 'حالة تحدث عندما لا يحصل الجسم على ما يكفي من العناصر الغذائية أو يحصل على الكثير من عناصر غذائية معينة، مما يؤدي إلى مشاكل صحية.'
     }
   ];
   

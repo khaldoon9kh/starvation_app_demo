@@ -72,12 +72,11 @@ More information and additional resources are available at: [https://starvationa
 
   const content = i18n.language === 'ar' ? arabicContent : englishContent;
 
-  // Function to find glossary term by name
-  const findGlossaryTerm = (termName) => {
+  // Function to find glossary term by reference
+  const findGlossaryTerm = (reference) => {
     return glossaryTermsFromHook.find(term => 
-      term.termEn?.toLowerCase() === termName.toLowerCase() || 
-      term.termAr?.toLowerCase() === termName.toLowerCase() ||
-      term.id === termName
+      term.reference?.toLowerCase() === reference.toLowerCase() || 
+      term.id?.toLowerCase() === reference.toLowerCase()
     );
   };
 
@@ -223,8 +222,8 @@ More information and additional resources are available at: [https://starvationa
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>
                 {i18n.language === 'ar'
-                  ? selectedTerm?.termAr || selectedTerm?.termArabic || selectedTerm?.termEn || selectedTerm?.term || 'Term'
-                  : selectedTerm?.termEn || selectedTerm?.term || selectedTerm?.termAr || selectedTerm?.termArabic || 'Term'
+                  ? selectedTerm?.termArabic || selectedTerm?.term || 'Term'
+                  : selectedTerm?.term || selectedTerm?.termArabic || 'Term'
                 }
               </Text>
               <TouchableOpacity
@@ -240,8 +239,8 @@ More information and additional resources are available at: [https://starvationa
                 { textAlign: i18n.language === 'ar' ? 'right' : 'left' }
               ]}>
                 {i18n.language === 'ar'
-                  ? selectedTerm?.definitionAr || selectedTerm?.definitionArabic || selectedTerm?.definitionEn || selectedTerm?.definition || 'Definition not available'
-                  : selectedTerm?.definitionEn || selectedTerm?.definition || selectedTerm?.definitionAr || selectedTerm?.definitionArabic || 'Definition not available'
+                  ? selectedTerm?.definitionArabic || selectedTerm?.definition || 'Definition not available'
+                  : selectedTerm?.definition || selectedTerm?.definitionArabic || 'Definition not available'
                 }
               </Text>
             </ScrollView>

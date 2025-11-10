@@ -227,10 +227,6 @@ export const subscribeToGlossaryTerms = (callback) => {
     }
   });
 };
-
-/**
- * Search glossary terms by term name
- */
 export const searchGlossaryTerms = async (searchTerm) => {
   try {
     const snapshot = await getDocs(glossaryRef);
@@ -241,6 +237,7 @@ export const searchGlossaryTerms = async (searchTerm) => {
     
     const searchLower = searchTerm.toLowerCase();
     return allTerms.filter(term => 
+      term.reference?.toLowerCase().includes(searchLower) ||
       term.term?.toLowerCase().includes(searchLower) ||
       term.termArabic?.toLowerCase().includes(searchLower) ||
       term.definition?.toLowerCase().includes(searchLower) ||
@@ -521,8 +518,9 @@ export const searchAllContent = async (searchTerm) => {
       if (item.titleEn && searchInText(item.titleEn, term)) score += 10;
       if (item.titleArabic && searchInText(item.titleArabic, term)) score += 10;
       
-      // For glossary, also check term fields
+      // For glossary, also check reference and term fields
       if (type === 'glossary') {
+        if (item.reference && searchInText(item.reference, term)) score += 10;
         if (item.term && searchInText(item.term, term)) score += 10;
         if (item.termArabic && searchInText(item.termArabic, term)) score += 10;
       }
@@ -607,7 +605,10 @@ export const getSearchSuggestions = async (partialTerm) => {
       if (item.titleArabic && item.titleArabic.includes(partialTerm)) {
         suggestions.add(item.titleArabic);
       }
-      // For glossary terms
+      // For glossary terms - use reference and term fields
+      if (item.reference && item.reference.toLowerCase().startsWith(searchLower)) {
+        suggestions.add(item.reference);
+      }
       if (item.term && item.term.toLowerCase().startsWith(searchLower)) {
         suggestions.add(item.term);
       }
@@ -691,6 +692,7 @@ export const getFallbackSubcategories = (categoryId) => {
 export const getFallbackGlossary = () => [
   {
     id: 'starvation',
+    reference: 'starvation',
     term: 'Starvation',
     termArabic: 'الجوع',
     definition: 'The deliberate deprivation of food as a weapon of war.',
@@ -699,6 +701,7 @@ export const getFallbackGlossary = () => [
   },
   {
     id: 'war-crime',
+    reference: 'war-crime',
     term: 'War Crime',
     termArabic: 'جريمة حرب',
     definition: 'Serious violations of international humanitarian law.',

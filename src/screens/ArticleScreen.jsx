@@ -46,24 +46,19 @@ const ArticleScreen = ({route, navigation}) => {
     ? subcategory.contentAr || subcategory.contentEn 
     : subcategory.contentEn || subcategory.contentAr) : null;
 
-  // Function to find glossary term by name
-  const findGlossaryTerm = (termName) => {
+  // Function to find glossary term by reference
+  const findGlossaryTerm = (reference) => {
     if (!glossaryTerms || !Array.isArray(glossaryTerms)) return null;
     
-    return glossaryTerms.find(term => {
-      // Handle different possible field names for titles
-      const titleEn = (term.titleEn || term.term || term.title)?.toLowerCase();
-      const titleAr = (term.titleAr || term.termArabic)?.toLowerCase();
-      const searchTerm = termName.toLowerCase().trim();
-      
-      return titleEn === searchTerm || titleAr === searchTerm ||
-             titleEn?.includes(searchTerm) || titleAr?.includes(searchTerm);
-    });
+    return glossaryTerms.find(term => 
+      term.reference?.toLowerCase() === reference.toLowerCase() || 
+      term.id?.toLowerCase() === reference.toLowerCase()
+    );
   };
 
   // Function to handle term click
-  const handleTermClick = (termName) => {
-    const term = findGlossaryTerm(termName);
+  const handleTermClick = (reference) => {
+    const term = findGlossaryTerm(reference);
     if (term) {
       setSelectedTerm(term);
       setIsModalVisible(true);
@@ -292,8 +287,8 @@ const ArticleScreen = ({route, navigation}) => {
                     { textAlign: isRTL ? 'right' : 'left' }
                   ]}>
                     {i18n.language === 'ar' 
-                      ? selectedTerm.titleAr || selectedTerm.termArabic || selectedTerm.titleEn || selectedTerm.term || selectedTerm.title
-                      : selectedTerm.titleEn || selectedTerm.term || selectedTerm.title || selectedTerm.titleAr || selectedTerm.termArabic
+                      ? selectedTerm.termArabic || selectedTerm.term || selectedTerm.title
+                      : selectedTerm.term || selectedTerm.title || selectedTerm.termArabic
                     }
                   </Text>
                   <TouchableOpacity 
@@ -310,8 +305,8 @@ const ArticleScreen = ({route, navigation}) => {
                     { textAlign: isRTL ? 'right' : 'left' }
                   ]}>
                     {i18n.language === 'ar'
-                      ? selectedTerm.definitionAr || selectedTerm.definitionArabic || selectedTerm.definitionEn || selectedTerm.definition || 'Definition not available'
-                      : selectedTerm.definitionEn || selectedTerm.definition || selectedTerm.definitionAr || selectedTerm.definitionArabic || 'Definition not available'
+                      ? selectedTerm.definitionArabic || selectedTerm.definition || 'Definition not available'
+                      : selectedTerm.definition || selectedTerm.definitionArabic || 'Definition not available'
                     }
                   </Text>
                 </View>

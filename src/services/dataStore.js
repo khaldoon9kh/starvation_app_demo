@@ -234,8 +234,9 @@ class DataStore {
       if (item.titleEn && searchInText(item.titleEn, term)) score += 10;
       if (item.titleArabic && searchInText(item.titleArabic, term)) score += 10;
       
-      // For glossary, also check term fields
+      // For glossary, also check reference and term fields
       if (type === 'glossary') {
+        if (item.reference && searchInText(item.reference, term)) score += 10;
         if (item.term && searchInText(item.term, term)) score += 10;
         if (item.termArabic && searchInText(item.termArabic, term)) score += 10;
       }
@@ -305,7 +306,10 @@ class DataStore {
       if (item.titleArabic && item.titleArabic.includes(partialTerm)) {
         suggestions.add(item.titleArabic);
       }
-      // For glossary terms
+      // For glossary terms - use reference and term fields
+      if (item.reference && item.reference.toLowerCase().startsWith(searchLower)) {
+        suggestions.add(item.reference);
+      }
       if (item.term && item.term.toLowerCase().startsWith(searchLower)) {
         suggestions.add(item.term);
       }
@@ -367,8 +371,8 @@ class DataStore {
         id: item.id,
         type: item.type || 'subcategory', // Default to subcategory
         // Fixed title extraction to handle all field variations
-        title: item.titleEn || item.title || item.term,
-        titleArabic: item.titleAr || item.titleArabic || item.termArabic,
+        title: item.titleEn || item.title,
+        titleArabic: item.titleAr || item.titleArabic,
         categoryId: item.categoryId, // Store category reference for navigation
         addedAt: new Date().toISOString(),
         // Store complete data with proper field mapping
