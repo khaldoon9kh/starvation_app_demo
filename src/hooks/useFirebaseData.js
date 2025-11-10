@@ -154,27 +154,27 @@ export const useSearch = () => {
   return { searchResults, isSearching, search };
 };
 
-// Hook for bookmarks
+// Hook for bookmarks - now synced with dataStore state
 export const useBookmarks = () => {
-  const [bookmarks, setBookmarks] = useState([]);
+  const [state, setState] = useState(dataStore.getState());
   const [loading, setLoading] = useState(false);
 
-  const loadBookmarks = useCallback(async () => {
-    try {
-      setLoading(true);
-      const savedBookmarks = await dataStore.getBookmarks();
-      setBookmarks(savedBookmarks);
-    } catch (error) {
-      console.error('Error loading bookmarks:', error);
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    // Listen to dataStore changes
+    const removeListener = dataStore.addListener(setState);
+    
+    // Load bookmarks initially if not loaded
+    if (!state.bookmarks || state.bookmarks.length === 0) {
+      dataStore.loadBookmarksToState();
     }
+
+    return removeListener;
   }, []);
 
   const addBookmark = useCallback(async (item) => {
     try {
-      const updatedBookmarks = await dataStore.addBookmark(item);
-      setBookmarks(updatedBookmarks);
+      await dataStore.addBookmark(item);
+      // State will be updated automatically via listener
       return true;
     } catch (error) {
       console.error('Error adding bookmark:', error);
@@ -184,8 +184,8 @@ export const useBookmarks = () => {
 
   const removeBookmark = useCallback(async (id, type) => {
     try {
-      const updatedBookmarks = await dataStore.removeBookmark(id, type);
-      setBookmarks(updatedBookmarks);
+      await dataStore.removeBookmark(id, type);
+      // State will be updated automatically via listener
       return true;
     } catch (error) {
       console.error('Error removing bookmark:', error);
@@ -194,20 +194,22 @@ export const useBookmarks = () => {
   }, []);
 
   const isBookmarked = useCallback((id, type) => {
-    return bookmarks.some(bookmark => bookmark.id === id && bookmark.type === type);
-  }, [bookmarks]);
+    return state.bookmarks.some(bookmark => bookmark.id === id && bookmark.type === type);
+  }, [state.bookmarks]);
 
-  useEffect(() => {
-    loadBookmarks();
-  }, [loadBookmarks]);
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    await dataStore.loadBookmarksToState();
+    setLoading(false);
+  }, []);
 
   return {
-    bookmarks,
+    bookmarks: state.bookmarks,
     loading,
     addBookmark,
     removeBookmark,
     isBookmarked,
-    refresh: loadBookmarks
+    refresh
   };
 };
 

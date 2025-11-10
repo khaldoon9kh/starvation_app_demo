@@ -19,6 +19,7 @@ class DataStore {
     this.glossaryTerms = [];
     this.diagrams = [];
     this.templates = [];
+    this.bookmarks = []; // Add bookmarks to state
     this.loading = false;
     this.error = null;
     this.lastUpdated = null;
@@ -28,6 +29,9 @@ class DataStore {
     
     // Callbacks for state updates
     this.listeners = [];
+    
+    // Load bookmarks on initialization
+    this.loadBookmarksToState();
   }
 
   // Add listener for state changes
@@ -51,6 +55,7 @@ class DataStore {
       glossaryTerms: this.glossaryTerms,
       diagrams: this.diagrams,
       templates: this.templates,
+      bookmarks: this.bookmarks, // Include bookmarks in state
       loading: this.loading,
       error: this.error,
       lastUpdated: this.lastUpdated
@@ -375,6 +380,18 @@ class DataStore {
     }
   }
 
+  // Load bookmarks into state (called on initialization)
+  async loadBookmarksToState() {
+    try {
+      const bookmarksData = await AsyncStorage.getItem('bookmarks');
+      this.bookmarks = bookmarksData ? JSON.parse(bookmarksData) : [];
+      this.notifyListeners();
+    } catch (error) {
+      console.error('Error loading bookmarks to state:', error);
+      this.bookmarks = [];
+    }
+  }
+
   // Get bookmarked items (stored locally)
   async getBookmarks() {
     try {
@@ -424,6 +441,11 @@ class DataStore {
       } else {
         console.log('ℹ️ Item already bookmarked:', bookmark.title);
       }
+      
+      // Update state and notify listeners immediately
+      this.bookmarks = bookmarks;
+      this.notifyListeners();
+      
       return bookmarks;
     } catch (error) {
       console.error('Error adding bookmark:', error);
@@ -437,6 +459,11 @@ class DataStore {
       const bookmarks = await this.getBookmarks();
       const filtered = bookmarks.filter(b => !(b.id === id && b.type === type));
       await AsyncStorage.setItem('bookmarks', JSON.stringify(filtered));
+      
+      // Update state and notify listeners immediately
+      this.bookmarks = filtered;
+      this.notifyListeners();
+      
       return filtered;
     } catch (error) {
       console.error('Error removing bookmark:', error);
