@@ -137,11 +137,11 @@ More information and additional resources are available at: [https://starvationa
     <View style={styles.container}>
       <ScrollView>
         <View style={styles.content}>
-        <Text style={styles.title}>OVERVIEW</Text>
+        <Text style={styles.title}>{t('homeScreen.overview')}</Text>
         
         {/* Data Status Section */}
         <View style={styles.dataStatusContainer}>
-          <Text style={styles.sectionTitle}>Content Status</Text>
+          <Text style={styles.sectionTitle}>{t('homeScreen.contentStatus')}</Text>
           
           {isLoading && (
             <View style={styles.loadingContainer}>
@@ -161,7 +161,7 @@ More information and additional resources are available at: [https://starvationa
           
           {!isLoading && !hasError && (
             <View style={styles.successContainer}>
-              <Text style={styles.successText}>✅ Content loaded successfully</Text>
+              <Text style={styles.successText}>✅ {t('homeScreen.contentLoaded')}</Text>
               {lastUpdated && (
                 <Text style={styles.lastUpdatedText}>
                   Last updated: {new Date(lastUpdated).toLocaleString()}
@@ -173,28 +173,28 @@ More information and additional resources are available at: [https://starvationa
 
         {/* Statistics Section */}
         <View style={styles.statsContainer}>
-          <Text style={styles.sectionTitle}>Content Statistics</Text>
+          <Text style={styles.sectionTitle}>{t('homeScreen.contentStatistics')}</Text>
           
           <View style={styles.statsGrid}>
             <View style={styles.statItem}>
               <Text style={styles.statNumber}>{stats.categories}</Text>
-              <Text style={styles.statLabel}>Categories</Text>
+              <Text style={styles.statLabel}>{t('homeScreen.categories')}</Text>
             </View>
             <View style={styles.statItem}>
               <Text style={styles.statNumber}>{stats.subcategories}</Text>
-              <Text style={styles.statLabel}>Subcategories</Text>
+              <Text style={styles.statLabel}>{t('homeScreen.subcategories')}</Text>
             </View>
             <View style={styles.statItem}>
               <Text style={styles.statNumber}>{stats.glossaryTerms}</Text>
-              <Text style={styles.statLabel}>Glossary Terms</Text>
+              <Text style={styles.statLabel}>{t('homeScreen.glossaryTerms')}</Text>
             </View>
             <View style={styles.statItem}>
               <Text style={styles.statNumber}>{stats.diagrams}</Text>
-              <Text style={styles.statLabel}>Diagrams</Text>
+              <Text style={styles.statLabel}>{t('homeScreen.diagrams')}</Text>
             </View>
             <View style={styles.statItem}>
               <Text style={styles.statNumber}>{stats.templates}</Text>
-              <Text style={styles.statLabel}>Templates</Text>
+              <Text style={styles.statLabel}>{t('homeScreen.templates')}</Text>
             </View>
           </View>
         </View>

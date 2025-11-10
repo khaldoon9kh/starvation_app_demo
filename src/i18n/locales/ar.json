@@ -146,5 +146,16 @@
     "retry": "إعادة المحاولة",
     "cancel": "إلغاء",
     "ok": "موافق"
+  },
+  "homeScreen": {
+    "overview": "نظرة عامة",
+    "contentStatus": "حالة المحتوى",
+    "contentLoaded": "تم تحميل المحتوى بنجاح",
+    "contentStatistics": "إحصائيات المحتوى",
+    "categories": "الفئات",
+    "subcategories": "الفئات الفرعية",
+    "glossaryTerms": "شروط المسرد",
+    "diagrams": "الرسوم البيانية",
+    "templates": "القوالب"
   }
 }

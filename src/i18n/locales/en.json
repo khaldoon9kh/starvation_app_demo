@@ -147,5 +147,16 @@
     "retry": "Retry",
     "cancel": "Cancel",
     "ok": "OK"
+  },
+  "homeScreen": {
+    "overview": "OVERVIEW",
+    "contentStatus": "Content Status",
+    "contentLoaded": "Content loaded successfully",
+    "contentStatistics": "Content Statistics",
+    "categories": "Categories",
+    "subcategories": "Subcategories",
+    "glossaryTerms": "Glossary Terms",
+    "diagrams": "Diagrams",
+    "templates": "Templates"
   }
 }
