@@ -70,7 +70,7 @@ const SettingsScreen = ({ navigation, route }) => {
       
       setDownloadProgress(t('settingsScreen.savingData', 'Saving content locally...'));
       
-      // Store content data
+      // Store content data in the new key for dataStore to load
       await AsyncStorage.setItem(CONTENT_DATA_KEY, JSON.stringify(contentData));
       await AsyncStorage.setItem(CONTENT_STATUS_KEY, 'downloaded');
       
@@ -97,6 +97,50 @@ const SettingsScreen = ({ navigation, route }) => {
       Alert.alert(
         t('common.error', 'Error'),
         t('settingsScreen.downloadError', 'Failed to download content. Please check your internet connection and try again.'),
+        [{ text: t('common.ok', 'OK') }]
+      );
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  const handleRefreshContent = async () => {
+    try {
+      setDownloading(true);
+      setDownloadProgress(t('settingsScreen.preparingDownload', 'Preparing download...'));
+      
+      // Fetch all content from Firebase
+      setDownloadProgress(t('settingsScreen.fetchingData', 'Fetching latest content...'));
+      const contentData = await getAllContentForCache();
+      
+      setDownloadProgress(t('settingsScreen.savingData', 'Saving content locally...'));
+      
+      // Update the cached data
+      await AsyncStorage.setItem(CONTENT_DATA_KEY, JSON.stringify(contentData));
+      await AsyncStorage.setItem(CONTENT_STATUS_KEY, 'downloaded');
+      
+      setContentStatus('downloaded');
+      setDownloadProgress('');
+      
+      // Show success message
+      Alert.alert(
+        t('settingsScreen.refreshComplete', 'Content Updated'),
+        t('settingsScreen.refreshSuccessMessage', 'Your content has been successfully updated to the latest version.'),
+        [
+          { 
+            text: t('common.ok', 'OK'), 
+            onPress: () => {
+              // Stay on settings screen, content is updated
+            }
+          }
+        ]
+      );
+      
+    } catch (error) {
+      console.error('Error refreshing content:', error);
+      Alert.alert(
+        t('common.error', 'Error'),
+        t('settingsScreen.refreshError', 'Failed to update content. Please check your internet connection and try again.'),
         [{ text: t('common.ok', 'OK') }]
       );
     } finally {
@@ -213,15 +257,13 @@ const SettingsScreen = ({ navigation, route }) => {
               </Text>
             </View>
           ) : (
-            renderSettingItem(
-              t('settingsScreen.downloadContent', 'Download content updates'),
-              contentStatus === 'downloaded' 
-                ? t('settingsScreen.contentDownloaded', 'Content is up to date')
-                : t('settingsScreen.contentNotDownloaded', 'Content not downloaded'),
-              contentStatus !== 'downloaded' ? handleDownloadContent : null,
-              contentStatus === 'downloaded' 
-                ? <Icon name="check-circle" size={20} color="#4CAF50" />
-                : <TouchableOpacity 
+            <>
+              {contentStatus !== 'downloaded' ? (
+                renderSettingItem(
+                  t('settingsScreen.downloadContent', 'Download content updates'),
+                  t('settingsScreen.contentNotDownloaded', 'Content not downloaded'),
+                  handleDownloadContent,
+                  <TouchableOpacity 
                     style={styles.downloadButton} 
                     onPress={handleDownloadContent}
                   >
@@ -229,7 +271,27 @@ const SettingsScreen = ({ navigation, route }) => {
                       {t('settingsScreen.download', 'DOWNLOAD')}
                     </Text>
                   </TouchableOpacity>
-            )
+                )
+              ) : (
+                <View>
+                  {renderSettingItem(
+                    t('settingsScreen.downloadContent', 'Download content updates'),
+                    t('settingsScreen.contentDownloaded', 'Content is up to date'),
+                    null,
+                    <Icon name="check-circle" size={20} color="#4CAF50" />
+                  )}
+                  <TouchableOpacity 
+                    style={styles.refreshButton} 
+                    onPress={handleRefreshContent}
+                  >
+                    <Icon name="refresh" size={18} color="#fff" />
+                    <Text style={styles.refreshButtonText}>
+                      {t('settingsScreen.updateContent', 'UPDATE CONTENT')}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </>
           )}
 
           {/* App Settings Section */}
@@ -389,6 +451,26 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 12,
     fontWeight: 'bold',
+  },
+  refreshButton: {
+    backgroundColor: '#FF9800',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginBottom: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 2,
+  },
+  refreshButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginLeft: 8,
   },
 });
 

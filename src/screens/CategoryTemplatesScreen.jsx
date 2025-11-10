@@ -10,7 +10,10 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useTranslation } from 'react-i18next';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getLocalTemplatesByCategory, openLocalTemplate, getLocalTemplates } from '../services/templateManager';
+
+const CONTENT_DATA_KEY = 'app_content_data';
 
 const CategoryTemplatesScreen = ({ route, navigation }) => {
   const { category, categoryDisplayName } = route.params;
@@ -29,15 +32,39 @@ const CategoryTemplatesScreen = ({ route, navigation }) => {
       setLoading(true);
       setError(null);
       const language = i18n.language === 'ar' ? 'ar' : 'en';
+      const categoryKey = language === 'ar' ? 'categoryAR' : 'categoryEN';
       
-      let categoryTemplates;
-      if (category === 'all') {
-        // Load all templates for "All Templates" category
-        const allTemplates = await getLocalTemplates();
-        categoryTemplates = Object.values(allTemplates);
-      } else {
-        // Load templates for specific category
-        categoryTemplates = await getLocalTemplatesByCategory(category, language);
+      // Try to load from main content cache first
+      const contentDataStr = await AsyncStorage.getItem(CONTENT_DATA_KEY);
+      
+      let categoryTemplates = [];
+      
+      if (contentDataStr) {
+        try {
+          const contentData = JSON.parse(contentDataStr);
+          const allTemplates = contentData.templates || [];
+          
+          if (category === 'all') {
+            categoryTemplates = allTemplates;
+          } else {
+            // Filter by category
+            categoryTemplates = allTemplates.filter(template => 
+              (template[categoryKey] || template.category) === category
+            );
+          }
+        } catch (parseErr) {
+          console.error('Error parsing cached content:', parseErr);
+        }
+      }
+      
+      // Fallback: Load from old separate storage if needed
+      if (categoryTemplates.length === 0) {
+        if (category === 'all') {
+          const allTemplates = await getLocalTemplates();
+          categoryTemplates = Object.values(allTemplates);
+        } else {
+          categoryTemplates = await getLocalTemplatesByCategory(category, language);
+        }
       }
       
       setTemplates(categoryTemplates);

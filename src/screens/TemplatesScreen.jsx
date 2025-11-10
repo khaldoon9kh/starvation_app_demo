@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useTranslation } from 'react-i18next';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { 
   getLocalTemplateCategories,
   areTemplatesDownloaded,
@@ -17,6 +18,9 @@ import {
   getDownloadStats,
   getLocalTemplates
 } from '../services/templateManager';
+
+const CONTENT_STATUS_KEY = 'app_content_status';
+const CONTENT_DATA_KEY = 'app_content_data';
 
 const TemplatesScreen = ({navigation}) => {
   const { t, i18n } = useTranslation();
@@ -36,22 +40,66 @@ const TemplatesScreen = ({navigation}) => {
       setLoading(true);
       setError(null);
       
-      // Check if templates are already downloaded
-      const templatesExist = await areTemplatesDownloaded();
+      // First check if main content has been downloaded (which includes templates)
+      const contentStatus = await AsyncStorage.getItem(CONTENT_STATUS_KEY);
       
-      if (!templatesExist) {
-        // Show download prompt
-        showDownloadPrompt();
+      if (contentStatus === 'downloaded') {
+        // Main content has been downloaded, load templates from cache
+        console.log('✓ Templates found in main content cache');
+        await loadTemplatesFromCache();
+        setLoading(false);
         return;
       }
       
-      // Load categories from local storage
+      // Fallback: Check if templates are in old separate storage
+      const templatesExist = await areTemplatesDownloaded();
+      
+      if (!templatesExist) {
+        // No templates found - show download prompt
+        showDownloadPrompt();
+        setLoading(false);
+        return;
+      }
+      
+      // Load categories from old separate storage
       await loadLocalCategories();
     } catch (err) {
       console.error('Error initializing templates:', err);
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadTemplatesFromCache = async () => {
+    try {
+      const contentDataStr = await AsyncStorage.getItem(CONTENT_DATA_KEY);
+      if (!contentDataStr) {
+        throw new Error('No cached content found');
+      }
+      
+      const contentData = JSON.parse(contentDataStr);
+      const templates = contentData.templates || [];
+      
+      if (templates.length === 0) {
+        throw new Error('No templates in cache');
+      }
+      
+      // Extract unique categories from templates
+      const language = i18n.language === 'ar' ? 'ar' : 'en';
+      const categoryKey = language === 'ar' ? 'categoryAR' : 'categoryEN';
+      
+      const uniqueCategories = [...new Set(templates.map(t => t[categoryKey] || t.category))];
+      
+      // Add "All Templates" as the first category
+      const allTemplatesCategory = t('templates.allTemplates', 'All Templates');
+      const allCategories = [allTemplatesCategory, ...uniqueCategories.filter(Boolean)];
+      
+      setCategories(allCategories);
+    } catch (err) {
+      console.error('Error loading templates from cache:', err);
+      // If cache fails, show download prompt
+      showDownloadPrompt();
     }
   };
 

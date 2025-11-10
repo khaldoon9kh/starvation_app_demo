@@ -95,7 +95,7 @@ class DataStore {
     }
   }
 
-  // Initialize data - load from cache first, then sync with Firebase
+  // Initialize data - load from cache first, then sync with Firebase only if offline mode disabled
   async initialize() {
     this.loading = true;
     this.error = null;
@@ -106,13 +106,15 @@ class DataStore {
       const hasCache = await this.loadCachedData();
       
       if (hasCache) {
-        console.log('Loaded cached data, syncing with Firebase...');
+        console.log('✅ Loaded cached data - using offline mode');
+        this.loading = false;
+        this.notifyListeners();
+        // Don't set up subscriptions - use only cached data
+        return;
       }
 
-      // Set up real-time subscriptions
-      this.setupSubscriptions();
-
-      // Initial load from Firebase
+      // No cache - this shouldn't happen if initialized properly, but load from Firebase
+      console.log('⚠️ No cache found - loading from Firebase');
       await this.loadInitialData();
 
     } catch (error) {
@@ -157,6 +159,29 @@ class DataStore {
 
     } catch (error) {
       console.error('Error loading initial data:', error);
+      this.error = error.message;
+      this.loading = false;
+      this.notifyListeners();
+    }
+  }
+
+  // Refresh data from Firebase and update cache
+  async refresh() {
+    console.log('🔄 Refreshing data from Firebase...');
+    this.loading = true;
+    this.error = null;
+    this.notifyListeners();
+
+    try {
+      // Clear existing subscriptions
+      this.cleanup();
+
+      // Reload all data
+      await this.loadInitialData();
+      
+      console.log('✅ Data refresh complete');
+    } catch (error) {
+      console.error('Error refreshing data:', error);
       this.error = error.message;
       this.loading = false;
       this.notifyListeners();
