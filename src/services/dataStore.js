@@ -324,7 +324,7 @@ class DataStore {
   }
 
   // Search functionality with enhanced matching
-  search(searchTerm) {
+  search(searchTerm, language = 'en') {
     if (!searchTerm || searchTerm.trim() === '') {
       return {
         categories: [],
@@ -336,6 +336,14 @@ class DataStore {
     }
 
     const searchLower = searchTerm.toLowerCase().trim();
+    const isArabic = language === 'ar';
+
+    console.log('🔍 SEARCH DEBUG:', {
+      searchTerm: searchLower,
+      language,
+      isArabic,
+      totalSubcategories: Object.values(this.subcategories).flat().length
+    });
 
     // Enhanced search function that checks multiple fields
     const searchInText = (text, searchTerm) => {
@@ -343,37 +351,125 @@ class DataStore {
       return text.toLowerCase().includes(searchTerm);
     };
 
-    // Score-based search for better relevance
+    // Language-aware score-based search for better relevance
     const scoreItem = (item, searchTerm, type) => {
       let score = 0;
       const term = searchTerm.toLowerCase();
       
-      // Title matches get highest score
-      if (item.title && searchInText(item.title, term)) score += 10;
-      if (item.titleAr && searchInText(item.titleAr, term)) score += 10;
-      if (item.titleEn && searchInText(item.titleEn, term)) score += 10;
-      if (item.titleArabic && searchInText(item.titleArabic, term)) score += 10;
+      // Debug: Log first few items to see structure (both with and without content)
+      if (type === 'subcategory' && !scoreItem.loggedCount) {
+        scoreItem.loggedCount = 0;
+      }
+      
+      if (type === 'subcategory' && scoreItem.loggedCount < 3) {
+        const hasContent = !!(item.contentEn || item.contentAr);
+        console.log(`📄 Sample subcategory ${scoreItem.loggedCount + 1} (${hasContent ? 'WITH' : 'NO'} content):`, {
+          id: item.id,
+          level: item.level,
+          hasContentEn: !!item.contentEn,
+          hasContentAr: !!item.contentAr,
+          contentEnLength: item.contentEn?.length || 0,
+          contentArLength: item.contentAr?.length || 0,
+          titleEn: item.titleEn?.substring(0, 40),
+          titleAr: item.titleAr?.substring(0, 40),
+          hasSubSubCategories: !!(item.subSubCategories?.length)
+        });
+        scoreItem.loggedCount++;
+      }
+      
+      // Language-specific title matches get highest score
+      if (isArabic) {
+        // Arabic search - prioritize Arabic fields
+        if (item.titleAr && searchInText(item.titleAr, term)) score += 15;
+        if (item.titleArabic && searchInText(item.titleArabic, term)) score += 15;
+        // Also check English as fallback with lower score
+        if (item.title && searchInText(item.title, term)) score += 5;
+        if (item.titleEn && searchInText(item.titleEn, term)) score += 5;
+      } else {
+        // English search - prioritize English fields
+        if (item.title && searchInText(item.title, term)) score += 15;
+        if (item.titleEn && searchInText(item.titleEn, term)) score += 15;
+        // Also check Arabic as fallback with lower score
+        if (item.titleAr && searchInText(item.titleAr, term)) score += 5;
+        if (item.titleArabic && searchInText(item.titleArabic, term)) score += 5;
+      }
       
       // For glossary, also check reference and term fields
       if (type === 'glossary') {
-        if (item.reference && searchInText(item.reference, term)) score += 10;
-        if (item.term && searchInText(item.term, term)) score += 10;
-        if (item.termArabic && searchInText(item.termArabic, term)) score += 10;
+        if (item.reference && searchInText(item.reference, term)) score += 12;
+        if (isArabic) {
+          if (item.termArabic && searchInText(item.termArabic, term)) score += 15;
+          if (item.term && searchInText(item.term, term)) score += 5;
+        } else {
+          if (item.term && searchInText(item.term, term)) score += 15;
+          if (item.termArabic && searchInText(item.termArabic, term)) score += 5;
+        }
       }
       
-      // Content matches get medium score
-      if (item.contentEn && searchInText(item.contentEn, term)) score += 5;
-      if (item.contentAr && searchInText(item.contentAr, term)) score += 5;
-      if (item.definition && searchInText(item.definition, term)) score += 5;
-      if (item.definitionArabic && searchInText(item.definitionArabic, term)) score += 5;
-      if (item.definitionEn && searchInText(item.definitionEn, term)) score += 5;
-      if (item.definitionAr && searchInText(item.definitionAr, term)) score += 5;
+      // Language-specific content matches get high score
+      // This searches the ACTUAL ARTICLE CONTENT (not just titles)
+      if (isArabic) {
+        const contentArMatch = item.contentAr && searchInText(item.contentAr, term);
+        if (contentArMatch) {
+          console.log('✅ FOUND IN contentAr:', {
+            title: item.titleAr?.substring(0, 50),
+            level: item.level,
+            snippet: item.contentAr.substring(0, 100)
+          });
+          score += 8;
+        }
+        if (item.definitionAr && searchInText(item.definitionAr, term)) score += 8;
+        if (item.definitionArabic && searchInText(item.definitionArabic, term)) score += 8;
+        // Fallback to English
+        const contentEnMatch = item.contentEn && searchInText(item.contentEn, term);
+        if (contentEnMatch) {
+          console.log('✅ FOUND IN contentEn (fallback):', {
+            title: item.titleEn?.substring(0, 50),
+            level: item.level,
+            snippet: item.contentEn.substring(0, 100)
+          });
+          score += 3;
+        }
+        if (item.definition && searchInText(item.definition, term)) score += 3;
+        if (item.definitionEn && searchInText(item.definitionEn, term)) score += 3;
+      } else {
+        const contentEnMatch = item.contentEn && searchInText(item.contentEn, term);
+        if (contentEnMatch) {
+          console.log('✅ FOUND IN contentEn:', {
+            title: item.titleEn?.substring(0, 50),
+            level: item.level,
+            snippet: item.contentEn.substring(0, 100)
+          });
+          score += 8;
+        }
+        if (item.definition && searchInText(item.definition, term)) score += 8;
+        if (item.definitionEn && searchInText(item.definitionEn, term)) score += 8;
+        // Fallback to Arabic
+        const contentArMatch = item.contentAr && searchInText(item.contentAr, term);
+        if (contentArMatch) {
+          console.log('✅ FOUND IN contentAr (fallback):', {
+            title: item.titleAr?.substring(0, 50),
+            level: item.level,
+            snippet: item.contentAr.substring(0, 100)
+          });
+          score += 3;
+        }
+        if (item.definitionAr && searchInText(item.definitionAr, term)) score += 3;
+        if (item.definitionArabic && searchInText(item.definitionArabic, term)) score += 3;
+      }
       
-      // Description matches get lower score
-      if (item.description && searchInText(item.description, term)) score += 3;
-      if (item.descriptionArabic && searchInText(item.descriptionArabic, term)) score += 3;
-      if (item.descriptionEn && searchInText(item.descriptionEn, term)) score += 3;
-      if (item.descriptionAr && searchInText(item.descriptionAr, term)) score += 3;
+      // Language-specific description matches get lower score
+      if (isArabic) {
+        if (item.descriptionAr && searchInText(item.descriptionAr, term)) score += 4;
+        if (item.descriptionArabic && searchInText(item.descriptionArabic, term)) score += 4;
+        if (item.description && searchInText(item.description, term)) score += 2;
+        if (item.descriptionEn && searchInText(item.descriptionEn, term)) score += 2;
+      } else {
+        if (item.description && searchInText(item.description, term)) score += 4;
+        if (item.descriptionEn && searchInText(item.descriptionEn, term)) score += 4;
+        if (item.descriptionAr && searchInText(item.descriptionAr, term)) score += 2;
+        if (item.descriptionArabic && searchInText(item.descriptionArabic, term)) score += 2;
+      }
       
       return score;
     };
@@ -386,13 +482,52 @@ class DataStore {
         .sort((a, b) => b.score - a.score);
     };
 
+    // Flatten ALL subcategory levels for search
+    const flattenSubcategories = () => {
+      const allItems = [];
+      
+      Object.values(this.subcategories).forEach(categorySubcategories => {
+        categorySubcategories.forEach(level1Item => {
+          // Add level 1 item (even if it's just a header)
+          allItems.push(level1Item);
+          
+          // Add all nested subSubCategories (level 2 items)
+          if (level1Item.subSubCategories && Array.isArray(level1Item.subSubCategories)) {
+            allItems.push(...level1Item.subSubCategories);
+          }
+        });
+      });
+      
+      console.log('📚 Flattened subcategories for search:', {
+        total: allItems.length,
+        withContent: allItems.filter(item => item.contentEn || item.contentAr).length,
+        withoutContent: allItems.filter(item => !item.contentEn && !item.contentAr).length
+      });
+      
+      return allItems;
+    };
+
     const results = {
       categories: filterAndScore(this.categories, 'category'),
-      subcategories: filterAndScore(Object.values(this.subcategories).flat(), 'subcategory'),
+      subcategories: filterAndScore(flattenSubcategories(), 'subcategory'),
       glossary: filterAndScore(this.glossaryTerms, 'glossary'),
       diagrams: filterAndScore(this.diagrams, 'diagram'),
       templates: filterAndScore(this.templates, 'template')
     };
+
+    console.log('🎯 SEARCH RESULTS:', {
+      searchTerm: searchLower,
+      language,
+      found: {
+        categories: results.categories.length,
+        subcategories: results.subcategories.length,
+        glossary: results.glossary.length,
+        diagrams: results.diagrams.length,
+        templates: results.templates.length,
+        total: results.categories.length + results.subcategories.length + 
+               results.glossary.length + results.diagrams.length + results.templates.length
+      }
+    });
 
     return results;
   }

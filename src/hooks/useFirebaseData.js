@@ -126,7 +126,7 @@ export const useSearch = () => {
   });
   const [isSearching, setIsSearching] = useState(false);
 
-  const search = useCallback((searchTerm) => {
+  const search = useCallback((searchTerm, language = 'en') => {
     if (!searchTerm || searchTerm.trim() === '') {
       setSearchResults({
         categories: [],
@@ -143,7 +143,7 @@ export const useSearch = () => {
     
     // Use setTimeout to debounce search
     const timeoutId = setTimeout(() => {
-      const results = dataStore.search(searchTerm);
+      const results = dataStore.search(searchTerm, language);
       setSearchResults(results);
       setIsSearching(false);
     }, 300);

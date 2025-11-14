@@ -25,22 +25,22 @@ const SearchModal = ({ visible, onClose }) => {
   const [searchText, setSearchText] = useState('');
   const isRTL = i18n.language === 'ar';
 
-  // Perform search when searchText changes
+  // Perform search when searchText changes (language-aware)
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      search(searchText);
+      search(searchText, i18n.language);
     }, 300);
 
     return () => clearTimeout(timeoutId);
-  }, [searchText, search]);
+  }, [searchText, search, i18n.language]);
 
   // Clear search when modal closes
   useEffect(() => {
     if (!visible) {
       setSearchText('');
-      search('');
+      search('', i18n.language);
     }
-  }, [visible, search]);
+  }, [visible, search, i18n.language]);
 
   // Calculate total results
   const totalResults = searchResults.categories.length + 
@@ -53,25 +53,105 @@ const SearchModal = ({ visible, onClose }) => {
     onClose();
     
     if (type === 'subcategory') {
-      // Navigate to the article
-      navigation.navigate('Library');
-      setTimeout(() => {
-        navigation.navigate('Article', {
-          subcategory: item,
-          category: { id: item.categoryId }, // Include category info
-          title: i18n.language === 'ar' ? item.titleAr || item.titleEn : item.titleEn || item.titleAr
+      // Check if item has content
+      const hasContent = !!(item.contentEn || item.contentAr || item.hasContent);
+      
+      console.log('🔘 Search result pressed:', {
+        type,
+        id: item.id,
+        level: item.level,
+        hasContent,
+        parentSubcategoryId: item.parentSubcategoryId,
+        titleEn: item.titleEn?.substring(0, 50),
+        titleAr: item.titleAr?.substring(0, 50)
+      });
+      
+      if (hasContent) {
+        // Clean up the item object - remove nested arrays to avoid navigation issues
+        const cleanItem = {
+          id: item.id,
+          categoryId: item.categoryId,
+          titleEn: item.titleEn,
+          titleAr: item.titleAr,
+          contentEn: item.contentEn,
+          contentAr: item.contentAr,
+          descriptionEn: item.descriptionEn,
+          descriptionAr: item.descriptionAr,
+          level: item.level,
+          parentSubcategoryId: item.parentSubcategoryId,
+          order: item.order,
+          hasContent: item.hasContent,
+          colorHex: item.colorHex,
+          createdAt: item.createdAt,
+          updatedAt: item.updatedAt
+          // Intentionally exclude subSubCategories array
+        };
+        
+        // Navigate directly to the article screen with content
+        const navParams = {
+          subcategory: cleanItem,
+          category: { id: item.categoryId },
+          title: i18n.language === 'ar' ? (item.titleAr || item.titleEn) : (item.titleEn || item.titleAr)
+        };
+        
+        console.log('📍 Navigating to Article with params:', {
+          subcategoryId: navParams.subcategory.id,
+          categoryId: navParams.category.id,
+          title: navParams.title,
+          level: navParams.subcategory.level,
+          hasContentEn: !!navParams.subcategory.contentEn,
+          hasContentAr: !!navParams.subcategory.contentAr
         });
-      }, 100);
+        
+        // Navigate to Library tab first, which mounts the LibraryStack
+        navigation.navigate('Library');
+        
+        // Then navigate to Article within that stack after a brief delay
+        // This ensures proper back navigation to Library instead of Home
+        setTimeout(() => {
+          navigation.navigate('Library', {
+            screen: 'Article',
+            params: navParams
+          });
+        }, 50);
+      } else {
+        // No content - just a header/category - go to Library
+        console.log('📚 No content found - navigating to Library instead');
+        navigation.navigate('Library');
+      }
     } else if (type === 'category') {
-      // Navigate to library and expand the category
+      // Navigate to library to show the category
       navigation.navigate('Library');
     } else if (type === 'glossary') {
-      // For glossary terms, show them in a modal or navigate to a glossary section
-      // For now, navigate to library
+      // Navigate to library (glossary terms are shown there)
       navigation.navigate('Library');
     } else if (type === 'template') {
-      // Navigate to templates
-      navigation.navigate('Templates');
+      // Navigate to the specific template category
+      const category = i18n.language === 'ar' 
+        ? (item.categoryAR || item.categoryEN || item.category)
+        : (item.categoryEN || item.categoryAR || item.category);
+      
+      if (category) {
+        // Navigate to Templates tab first
+        navigation.navigate('Templates');
+        
+        // Then navigate to CategoryTemplates within that stack
+        // This ensures proper back navigation
+        setTimeout(() => {
+          navigation.navigate('Templates', {
+            screen: 'CategoryTemplates',
+            params: {
+              category: category,
+              categoryDisplayName: category
+            }
+          });
+        }, 50);
+      } else {
+        navigation.navigate('Templates');
+      }
+    } else if (type === 'diagram') {
+      // Diagrams are shown in articles, so just go to library
+      navigation.navigate('Library');
     }
   };
 
@@ -102,19 +182,95 @@ const SearchModal = ({ visible, onClose }) => {
     }
   };
 
+  // Extract contextual snippet around the search term
+  const getContextualSnippet = (text, searchTerm, maxLength = 150) => {
+    if (!text || !searchTerm) return text?.substring(0, maxLength) + '...' || '';
+    
+    const lowerText = text.toLowerCase();
+    const lowerSearchTerm = searchTerm.toLowerCase();
+    const index = lowerText.indexOf(lowerSearchTerm);
+    
+    // If search term not found, return beginning of text
+    if (index === -1) {
+      return text.substring(0, maxLength) + '...';
+    }
+    
+    // Calculate start and end positions for snippet
+    const padding = Math.floor((maxLength - searchTerm.length) / 2);
+    let start = Math.max(0, index - padding);
+    let end = Math.min(text.length, index + searchTerm.length + padding);
+    
+    // Adjust to not cut words in the middle
+    if (start > 0) {
+      const spaceIndex = text.lastIndexOf(' ', start);
+      if (spaceIndex > start - 20 && spaceIndex > 0) {
+        start = spaceIndex + 1;
+      }
+    }
+    
+    if (end < text.length) {
+      const spaceIndex = text.indexOf(' ', end);
+      if (spaceIndex > 0 && spaceIndex < end + 20) {
+        end = spaceIndex;
+      }
+    }
+    
+    // Build snippet with ellipsis
+    let snippet = '';
+    if (start > 0) snippet += '...';
+    snippet += text.substring(start, end);
+    if (end < text.length) snippet += '...';
+    
+    return snippet;
+  };
+
   const highlightSearchTerm = (text, searchTerm) => {
     if (!text || !searchTerm) return text;
     
-    const regex = new RegExp(`(${searchTerm})`, 'gi');
+    const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
     return text.replace(regex, '**$1**');
+  };
+
+  // Render text with highlighted search terms
+  const renderHighlightedText = (text, searchTerm, baseStyle, isRTL) => {
+    if (!text || !searchTerm) {
+      return (
+        <Text style={[baseStyle, { textAlign: isRTL ? 'right' : 'left' }]}>
+          {text}
+        </Text>
+      );
+    }
+    
+    const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    const parts = text.split(regex);
+    
+    return (
+      <Text style={[baseStyle, { textAlign: isRTL ? 'right' : 'left' }]}>
+        {parts.map((part, index) => {
+          const isMatch = part.toLowerCase() === searchTerm.toLowerCase();
+          return (
+            <Text
+              key={index}
+              style={isMatch ? styles.highlightedText : {}}
+            >
+              {part}
+            </Text>
+          );
+        })}
+      </Text>
+    );
   };
 
   const renderSearchResult = (item, type) => {
     const title = getResultTitle(item, type);
     const content = getResultContent(item, type);
-    const truncatedContent = content ? content.substring(0, 150) + '...' : '';
+    
+    // Get contextual snippet around search term
+    const snippet = content ? getContextualSnippet(content, searchText, 180) : '';
+    
+    // Highlight search term in title and snippet
     const highlightedTitle = highlightSearchTerm(title, searchText);
-    const highlightedContent = highlightSearchTerm(truncatedContent, searchText);
+    const highlightedSnippet = highlightSearchTerm(snippet, searchText);
 
     return (
       <TouchableOpacity
@@ -130,12 +286,7 @@ const SearchModal = ({ visible, onClose }) => {
             styles.resultHeader,
             { flexDirection: isRTL ? 'row-reverse' : 'row' }
           ]}>
-            <Text style={[
-              styles.resultTitle,
-              { textAlign: isRTL ? 'right' : 'left' }
-            ]}>
-              {title}
-            </Text>
+            {renderHighlightedText(title, searchText, styles.resultTitle, isRTL)}
             <View style={[
               styles.sectionBadge,
               { backgroundColor: getSectionColor(type) }
@@ -146,13 +297,13 @@ const SearchModal = ({ visible, onClose }) => {
             </View>
           </View>
           
-          {content && (
-            <Text style={[
-              styles.resultSnippet,
-              { textAlign: isRTL ? 'right' : 'left' }
+          {snippet && (
+            <View style={[
+              styles.snippetContainer,
+              { alignItems: isRTL ? 'flex-end' : 'flex-start' }
             ]}>
-              {truncatedContent}
-            </Text>
+              {renderHighlightedText(snippet, searchText, styles.resultSnippet, isRTL)}
+            </View>
           )}
         </View>
         
@@ -472,6 +623,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     lineHeight: 20,
+  },
+  snippetContainer: {
+    marginTop: 5,
+  },
+  highlightedText: {
+    backgroundColor: '#FFEB3B',
+    fontWeight: '700',
+    color: '#000',
+    paddingHorizontal: 2,
+    borderRadius: 2,
   },
 });
 
