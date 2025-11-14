@@ -91,7 +91,11 @@ const CategoryTemplatesScreen = ({ route, navigation }) => {
   };
 
   const getTemplateIcon = (template) => {
-    const fileExtension = template.fileExtension || 'document';
+    const language = i18n.language === 'ar' ? 'ar' : 'en';
+    const fileExtension = language === 'ar'
+      ? (template.fileExtensionAr || template.fileExtension)
+      : (template.fileExtensionEn || template.fileExtension) || 'document';
+    
     switch (fileExtension.toLowerCase()) {
       case 'pdf':
         return 'picture-as-pdf';
@@ -122,15 +126,15 @@ const CategoryTemplatesScreen = ({ route, navigation }) => {
   };
 
   const handleTemplatePress = async (template) => {
-    // Check if template has local file info
+    // Check if template has local file info (bilingual version)
     // If not from cache, check downloaded templates storage
-    let hasLocalFile = template.hasFile && template.localPath;
+    let hasLocalFile = template.hasFile && (template.localPathEn || template.localPathAr || template.localPath);
     
     if (!hasLocalFile) {
       try {
         const downloadedTemplates = await getLocalTemplates();
         const downloaded = downloadedTemplates[template.id];
-        hasLocalFile = downloaded && downloaded.hasFile && downloaded.localPath;
+        hasLocalFile = downloaded && downloaded.hasFile && (downloaded.localPathEn || downloaded.localPathAr || downloaded.localPath);
       } catch (error) {
         console.error('Error checking downloaded templates:', error);
       }
@@ -161,15 +165,28 @@ const CategoryTemplatesScreen = ({ route, navigation }) => {
   const showTemplateInfo = (template) => {
     const title = getTemplateTitle(template);
     const description = getTemplateDescription(template);
-    const fileExtension = template.fileExtension?.toUpperCase() || 'Document';
-    const originalName = template.pdfOriginalName || 'Unknown';
-    const fileSize = template.pdfSize ? `${(template.pdfSize / 1024).toFixed(1)} KB` : 'Unknown';
+    const language = i18n.language === 'ar' ? 'ar' : 'en';
+    
+    // Get language-specific file info
+    const fileExtension = language === 'ar' 
+      ? (template.fileExtensionAr || template.fileExtension)?.toUpperCase()
+      : (template.fileExtensionEn || template.fileExtension)?.toUpperCase() || 'Document';
+    
+    const originalName = language === 'ar' 
+      ? (template.pdfOriginalNameAr || template.pdfOriginalName)
+      : (template.pdfOriginalNameEn || template.pdfOriginalName) || 'Unknown';
+    
+    const fileSize = language === 'ar'
+      ? (template.pdfSizeAr || template.pdfSize)
+      : (template.pdfSizeEn || template.pdfSize);
+    
+    const fileSizeText = fileSize ? `${(fileSize / 1024).toFixed(1)} KB` : 'Unknown';
     const downloadDate = template.downloadedAt ? new Date(template.downloadedAt).toLocaleDateString() : 'Unknown';
     const fileStatus = template.hasFile ? t('templates.fileAvailable', 'Available locally') : t('templates.fileNotAvailable', 'Not available');
     
     Alert.alert(
       title,
-      `${description}\n\n${t('templates.originalName', 'Original Name')}: ${originalName}\n${t('templates.fileType', 'File Type')}: ${fileExtension}\n${t('templates.fileSize', 'File Size')}: ${fileSize}\n${t('templates.downloadedAt', 'Downloaded')}: ${downloadDate}\n${t('templates.status', 'Status')}: ${fileStatus}`,
+      `${description}\n\n${t('templates.originalName', 'Original Name')}: ${originalName}\n${t('templates.fileType', 'File Type')}: ${fileExtension}\n${t('templates.fileSize', 'File Size')}: ${fileSizeText}\n${t('templates.downloadedAt', 'Downloaded')}: ${downloadDate}\n${t('templates.status', 'Status')}: ${fileStatus}`,
       [
         { text: t('common.ok', 'OK') },
         ...(template.hasFile ? [{ 
@@ -188,16 +205,18 @@ const CategoryTemplatesScreen = ({ route, navigation }) => {
       // If not, try to get it from the downloaded templates storage
       let templateWithLocalPath = template;
       
-      if (!template.localPath || !template.hasFile) {
+      if (!template.localPathEn && !template.localPathAr && !template.localPath) {
         console.log('📦 Template missing local path info, checking downloaded templates...');
         const downloadedTemplates = await getLocalTemplates();
         const downloaded = downloadedTemplates[template.id];
         
-        if (downloaded && downloaded.localPath && downloaded.hasFile) {
+        if (downloaded && (downloaded.localPathEn || downloaded.localPathAr || downloaded.localPath) && downloaded.hasFile) {
           console.log('✅ Found template in downloaded storage');
           templateWithLocalPath = {
             ...template,
-            localPath: downloaded.localPath,
+            localPathEn: downloaded.localPathEn,
+            localPathAr: downloaded.localPathAr,
+            localPath: downloaded.localPath, // Legacy support
             hasFile: downloaded.hasFile
           };
         } else {
@@ -205,7 +224,7 @@ const CategoryTemplatesScreen = ({ route, navigation }) => {
         }
       }
       
-      await openLocalTemplate(templateWithLocalPath);
+      await openLocalTemplate(templateWithLocalPath, i18n.language);
       
       console.log('✅ Template opened successfully');
     } catch (error) {

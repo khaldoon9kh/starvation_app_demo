@@ -103,17 +103,18 @@ const ArticleScreen = ({route, navigation}) => {
     setSelectedTerm(null);
   };
 
-  // Helper function to find diagram by reference and return local path
+  // Helper function to find diagram by reference and return local path (bilingual version)
   const findDiagramByReference = (reference) => {
     if (!reference) {
       console.log(`❌ findDiagramByReference called with empty reference`);
       return null;
     }
     
-    console.log(`🔍 Looking for diagram with reference: "${reference}"`);
+    console.log(`🔍 Looking for diagram with reference: "${reference}" (language: ${i18n.language})`);
     console.log(`📦 Local diagrams available:`, Object.values(localDiagrams).map(d => ({
       reference: d.reference,
-      hasLocalPath: !!d.localPath
+      hasLocalPathEn: !!d.localPathEn,
+      hasLocalPathAr: !!d.localPathAr
     })));
     
     // First check local downloaded diagrams (OFFLINE FIRST)
@@ -122,14 +123,19 @@ const ArticleScreen = ({route, navigation}) => {
       return d.reference === reference;
     });
     
-    if (localDiagram && localDiagram.localPath) {
-      console.log(`✅ Found local diagram: ${reference} at ${localDiagram.localPath}`);
-      return {
-        ...localDiagram,
-        imageUrl: localDiagram.localPath // Use local path for offline access
-      };
-    } else if (localDiagram) {
-      console.log(`⚠️ Found diagram ${reference} but no localPath`);
+    if (localDiagram) {
+      // Choose the correct language version
+      const localPath = i18n.language === 'ar' ? localDiagram.localPathAr : localDiagram.localPathEn;
+      
+      if (localPath) {
+        console.log(`✅ Found local diagram (${i18n.language}): ${reference} at ${localPath}`);
+        return {
+          ...localDiagram,
+          imageUrl: localPath // Use language-specific local path for offline access
+        };
+      } else {
+        console.log(`⚠️ Found diagram ${reference} but no localPath for language ${i18n.language}`);
+      }
     } else {
       console.log(`❌ No local diagram found for reference: ${reference}`);
     }
@@ -139,7 +145,12 @@ const ArticleScreen = ({route, navigation}) => {
       const diagram = diagrams.find(d => d.reference === reference);
       if (diagram) {
         console.log(`⚠️ Using online diagram: ${reference}`);
-        return diagram;
+        // Use the correct language path even for online diagrams
+        const imagePath = i18n.language === 'ar' ? diagram.imageFilePathAr : diagram.imageFilePathEn;
+        return {
+          ...diagram,
+          imagePath
+        };
       }
     }
     
@@ -173,31 +184,47 @@ const ArticleScreen = ({route, navigation}) => {
       if (hasExtension) {
         console.log(`📦 Available local diagrams: ${Object.keys(localDiagrams).length}`);
         
-        // Try to find in local diagrams by filename
+        // Try to find in local diagrams by filename (bilingual version)
         const localDiagram = Object.values(localDiagrams).find(d => {
-          const matches = d.imageFileName === diagramRef || 
-                         d.imageOriginalName === diagramRef ||
-                         d.localPath?.endsWith(diagramRef);
+          const fileNameEn = d.imageFileNameEn;
+          const fileNameAr = d.imageFileNameAr;
+          const originalNameEn = d.imageOriginalNameEn;
+          const originalNameAr = d.imageOriginalNameAr;
+          
+          const matches = fileNameEn === diagramRef || 
+                         fileNameAr === diagramRef ||
+                         originalNameEn === diagramRef ||
+                         originalNameAr === diagramRef ||
+                         d.localPathEn?.endsWith(diagramRef) ||
+                         d.localPathAr?.endsWith(diagramRef);
           if (matches) {
             console.log(`✅ Matched diagram by filename:`, {
-              imageFileName: d.imageFileName,
-              imageOriginalName: d.imageOriginalName,
-              localPath: d.localPath
+              imageFileNameEn: fileNameEn,
+              imageFileNameAr: fileNameAr,
+              imageOriginalNameEn: originalNameEn,
+              imageOriginalNameAr: originalNameAr,
+              localPathEn: d.localPathEn,
+              localPathAr: d.localPathAr
             });
           }
           return matches;
         });
         
-        if (localDiagram && localDiagram.localPath) {
-          console.log(`🖼️ Found diagram by filename: ${diagramRef} at ${localDiagram.localPath}`);
-          return `![${description || diagramRef}](${localDiagram.localPath})`;
+        if (localDiagram) {
+          // Use language-specific path
+          const localPath = i18n.language === 'ar' ? localDiagram.localPathAr : localDiagram.localPathEn;
+          if (localPath) {
+            console.log(`🖼️ Found diagram by filename (${i18n.language}): ${diagramRef} at ${localPath}`);
+            return `![${description || diagramRef}](${localPath})`;
+          }
         }
         
         // Try matching by reference (without extension)
         const diagramByRef = findDiagramByReference(refWithoutExt);
-        if (diagramByRef && diagramByRef.localPath) {
-          console.log(`🖼️ Found diagram by reference (stripped ext): ${refWithoutExt} at ${diagramByRef.localPath}`);
-          return `![${description || diagramByRef.title || 'Diagram'}](${diagramByRef.localPath})`;
+        if (diagramByRef && diagramByRef.imageUrl) {
+          console.log(`🖼️ Found diagram by reference (stripped ext): ${refWithoutExt} at ${diagramByRef.imageUrl}`);
+          const title = i18n.language === 'ar' ? diagramByRef.titleArabic : diagramByRef.title;
+          return `![${description || title || 'Diagram'}](${diagramByRef.imageUrl})`;
         }
         
         // If not found in downloaded diagrams, construct path to diagrams directory

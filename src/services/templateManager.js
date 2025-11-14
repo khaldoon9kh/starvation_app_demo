@@ -26,14 +26,15 @@ export const downloadAllTemplates = async () => {
     
     for (const template of templates) {
       try {
-        // Download template file to local storage
-        const localPath = await downloadTemplateFile(template);
-        const hasFile = localPath !== null;
+        // Download template files (both EN and AR) to local storage
+        const localPaths = await downloadTemplateFile(template);
+        const hasFile = localPaths !== null && (localPaths.localPathEn || localPaths.localPathAr);
         
-        // Store template metadata and file path
+        // Store template metadata and file paths
         const templateData = {
           ...template,
-          localPath,
+          localPathEn: localPaths?.localPathEn || null,
+          localPathAr: localPaths?.localPathAr || null,
           downloadedAt: new Date().toISOString(),
           isDownloaded: true,
           hasFile
@@ -48,14 +49,19 @@ export const downloadAllTemplates = async () => {
           categoryAR: template.categoryAR,
           description: template.description,
           descriptionArabic: template.descriptionArabic,
-          fileType: template.fileType,
-          fileExtension: template.fileExtension,
-          pdfOriginalName: template.pdfOriginalName,
-          pdfSize: template.pdfSize,
+          fileTypeEn: template.fileTypeEn,
+          fileTypeAr: template.fileTypeAr,
+          fileExtensionEn: template.fileExtensionEn,
+          fileExtensionAr: template.fileExtensionAr,
+          pdfOriginalNameEn: template.pdfOriginalNameEn,
+          pdfOriginalNameAr: template.pdfOriginalNameAr,
+          pdfSizeEn: template.pdfSizeEn,
+          pdfSizeAr: template.pdfSizeAr,
           downloadedAt: templateData.downloadedAt,
           isDownloaded: templateData.isDownloaded,
           hasFile: templateData.hasFile,
-          localPath: templateData.localPath
+          localPathEn: templateData.localPathEn,
+          localPathAr: templateData.localPathAr
         });
         
         console.log(`✅ Downloaded: ${template.title || template.titleEn}`);
@@ -65,7 +71,8 @@ export const downloadAllTemplates = async () => {
         // Store template metadata even if download failed
         const templateData = {
           ...template,
-          localPath: null,
+          localPathEn: null,
+          localPathAr: null,
           downloadedAt: new Date().toISOString(),
           isDownloaded: true, // Mark as processed
           hasFile: false,
@@ -81,14 +88,19 @@ export const downloadAllTemplates = async () => {
           categoryAR: template.categoryAR,
           description: template.description,
           descriptionArabic: template.descriptionArabic,
-          fileType: template.fileType,
-          fileExtension: template.fileExtension,
-          pdfOriginalName: template.pdfOriginalName,
-          pdfSize: template.pdfSize,
+          fileTypeEn: template.fileTypeEn,
+          fileTypeAr: template.fileTypeAr,
+          fileExtensionEn: template.fileExtensionEn,
+          fileExtensionAr: template.fileExtensionAr,
+          pdfOriginalNameEn: template.pdfOriginalNameEn,
+          pdfOriginalNameAr: template.pdfOriginalNameAr,
+          pdfSizeEn: template.pdfSizeEn,
+          pdfSizeAr: template.pdfSizeAr,
           downloadedAt: templateData.downloadedAt,
           isDownloaded: true,
           hasFile: false,
-          localPath: null,
+          localPathEn: null,
+          localPathAr: null,
           downloadError: error.message
         });
       }
@@ -111,69 +123,75 @@ export const downloadAllTemplates = async () => {
 };
 
 /**
- * Download individual template file to device storage
+ * Download individual template file to device storage (bilingual version)
+ * Downloads BOTH English and Arabic versions and stores them separately
  */
 const downloadTemplateFile = async (template) => {
   try {
-    // Try new secure URL system first (Firebase Storage with paths)
-    let fileUrl = null;
-    
-    if (template.pdfFilePath) {
-      try {
-        const { getTemplateDocumentUrl } = await import('./firebase');
-        fileUrl = await getTemplateDocumentUrl(template.pdfFilePath);
-        console.log('✅ Using secure URL from pdfFilePath');
-      } catch (error) {
-        console.warn('⚠️ Failed to generate secure URL from pdfFilePath:', error);
-      }
-    }
-    
-    // Fallback to legacy pdfUrl field if new system not available
-    if (!fileUrl && template.pdfUrl) {
-      fileUrl = template.pdfUrl;
-      console.log('✅ Using legacy URL from pdfUrl field');
-    }
-    
-    if (!fileUrl) {
-      console.log(`❌ Template ${template.id} has no pdfUrl or pdfFilePath`);
-      return null;
-    }
-
-    // Use the original file name or create from title
-    const fileName = template.pdfOriginalName || 
-                    (template.title || `template_${template.id}`) + `.${template.fileExtension || 'pdf'}`;
-    
-    // Clean filename for filesystem
-    const cleanFileName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_');
-    
-    // Create local file path in document directory
-    const localUri = `${FileSystem.documentDirectory}templates/${cleanFileName}`;
-    
-    console.log(`📥 Downloading: ${template.title}`);
-    console.log(`📄 Original: ${template.pdfOriginalName}`);
-    console.log(`🔗 From: ${fileUrl}`);
-    console.log(`💾 To: ${localUri}`);
-    console.log(`📊 Size: ${template.pdfSize} bytes`);
+    const { getTemplateDocumentUrl } = await import('./firebase');
+    const templatesDir = `${FileSystem.documentDirectory}templates/`;
     
     // Create templates directory if it doesn't exist
-    const templatesDir = `${FileSystem.documentDirectory}templates/`;
     const dirInfo = await FileSystem.getInfoAsync(templatesDir);
     if (!dirInfo.exists) {
       await FileSystem.makeDirectoryAsync(templatesDir, { intermediates: true });
       console.log(`📁 Created directory: ${templatesDir}`);
     }
     
-    // Download file to local storage
-    const downloadResult = await FileSystem.downloadAsync(fileUrl, localUri);
+    const result = {};
     
-    if (downloadResult.status === 200) {
-      console.log(`✅ Downloaded successfully: ${cleanFileName}`);
-      console.log(`📍 Local path: ${downloadResult.uri}`);
-      return downloadResult.uri;
-    } else {
-      console.log(`❌ Download failed with status: ${downloadResult.status}`);
-      return null;
+    // Download English version
+    if (template.pdfFilePathEn) {
+      try {
+        const fileUrlEn = await getTemplateDocumentUrl(template.pdfFilePathEn);
+        const fileNameEn = template.pdfFileNameEn || `template_${template.id}_en.${template.fileExtensionEn || 'pdf'}`;
+        const localUriEn = `${templatesDir}${fileNameEn}`;
+        
+        console.log(`📥 Downloading EN: ${template.title}`);
+        console.log(`📄 Original: ${template.pdfOriginalNameEn}`);
+        console.log(`🔗 From: ${fileUrlEn}`);
+        console.log(`💾 To: ${localUriEn}`);
+        console.log(`📊 Size: ${template.pdfSizeEn} bytes`);
+        
+        const downloadResultEn = await FileSystem.downloadAsync(fileUrlEn, localUriEn);
+        
+        if (downloadResultEn.status === 200) {
+          result.localPathEn = downloadResultEn.uri;
+          console.log(`✅ EN template downloaded successfully`);
+        }
+      } catch (error) {
+        console.error(`❌ Error downloading EN template:`, error);
+        result.localPathEn = null;
+      }
     }
+    
+    // Download Arabic version
+    if (template.pdfFilePathAr) {
+      try {
+        const fileUrlAr = await getTemplateDocumentUrl(template.pdfFilePathAr);
+        const fileNameAr = template.pdfFileNameAr || `template_${template.id}_ar.${template.fileExtensionAr || 'pdf'}`;
+        const localUriAr = `${templatesDir}${fileNameAr}`;
+        
+        console.log(`📥 Downloading AR: ${template.titleArabic}`);
+        console.log(`� Original: ${template.pdfOriginalNameAr}`);
+        console.log(`🔗 From: ${fileUrlAr}`);
+        console.log(`💾 To: ${localUriAr}`);
+        console.log(`📊 Size: ${template.pdfSizeAr} bytes`);
+        
+        const downloadResultAr = await FileSystem.downloadAsync(fileUrlAr, localUriAr);
+        
+        if (downloadResultAr.status === 200) {
+          result.localPathAr = downloadResultAr.uri;
+          console.log(`✅ AR template downloaded successfully`);
+        }
+      } catch (error) {
+        console.error(`❌ Error downloading AR template:`, error);
+        result.localPathAr = null;
+      }
+    }
+    
+    // Return object with both paths
+    return result.localPathEn || result.localPathAr ? result : null;
     
   } catch (error) {
     console.error(`❌ Error downloading template ${template.id}:`, error);
@@ -323,22 +341,27 @@ export const getDownloadStats = async () => {
 };
 
 /**
- * Open local template file with native "open with" dialog
+ * Open local template file with native "open with" dialog (bilingual version)
+ * Opens the correct language version based on the current app language
  */
-export const openLocalTemplate = async (template) => {
+export const openLocalTemplate = async (template, language = 'en') => {
   try {
-    if (!template.localPath || !template.hasFile) {
+    // Determine which path to use based on language
+    const localPath = language === 'ar' ? template.localPathAr : template.localPathEn;
+    
+    if (!localPath || !template.hasFile) {
       throw new Error('Template file not available locally');
     }
     
     // Check if file exists
-    const fileInfo = await FileSystem.getInfoAsync(template.localPath);
+    const fileInfo = await FileSystem.getInfoAsync(localPath);
     if (!fileInfo.exists) {
       throw new Error('Template file not found on device');
     }
     
-    console.log(`📱 Opening template: ${template.title || template.titleEn}`);
-    console.log(`📄 File path: ${template.localPath}`);
+    const title = language === 'ar' ? template.titleArabic : template.title;
+    console.log(`📱 Opening template (${language}): ${title}`);
+    console.log(`📄 File path: ${localPath}`);
     
     // Use Expo Sharing to open with native "open with" dialog
     const isAvailable = await Sharing.isAvailableAsync();
@@ -346,9 +369,9 @@ export const openLocalTemplate = async (template) => {
       throw new Error('Sharing not available on this device');
     }
     
-    await Sharing.shareAsync(template.localPath, {
-      dialogTitle: template.title || 'Open Template',
-      mimeType: getMimeType(template),
+    await Sharing.shareAsync(localPath, {
+      dialogTitle: title || 'Open Template',
+      mimeType: getMimeType(template, language),
     });
     
     console.log(`✅ Successfully opened template`);
@@ -361,12 +384,13 @@ export const openLocalTemplate = async (template) => {
 };
 
 /**
- * Get MIME type - use fileType directly from Firestore or fallback to extension mapping
+ * Get MIME type - use fileType directly from Firestore or fallback to extension mapping (bilingual version)
  */
-const getMimeType = (template) => {
-  // Use fileType directly if available (it contains the full MIME type)
-  if (template.fileType) {
-    return template.fileType;
+const getMimeType = (template, language = 'en') => {
+  // Use language-specific fileType if available
+  const fileType = language === 'ar' ? template.fileTypeAr : template.fileTypeEn;
+  if (fileType) {
+    return fileType;
   }
   
   // Fallback to extension mapping if fileType not available
@@ -384,7 +408,8 @@ const getMimeType = (template) => {
     'png': 'image/png'
   };
   
-  return mimeTypes[template.fileExtension?.toLowerCase()] || 'application/octet-stream';
+  const fileExtension = language === 'ar' ? template.fileExtensionAr : template.fileExtensionEn;
+  return mimeTypes[fileExtension?.toLowerCase()] || 'application/octet-stream';
 };
 
 /**
@@ -432,14 +457,15 @@ export const downloadAllDiagrams = async () => {
     
     for (const diagram of diagrams) {
       try {
-        // Download diagram image to local storage
-        const localPath = await downloadDiagramImage(diagram);
-        const hasFile = localPath !== null;
+        // Download diagram images (both EN and AR) to local storage
+        const localPaths = await downloadDiagramImage(diagram);
+        const hasFile = localPaths !== null && (localPaths.localPathEn || localPaths.localPathAr);
         
-        // Store diagram metadata and file path
+        // Store diagram metadata and file paths
         const diagramData = {
           ...diagram,
-          localPath,
+          localPathEn: localPaths?.localPathEn || null,
+          localPathAr: localPaths?.localPathAr || null,
           downloadedAt: new Date().toISOString(),
           isDownloaded: true,
           hasFile
@@ -451,13 +477,19 @@ export const downloadAllDiagrams = async () => {
           reference: diagram.reference,
           title: diagram.title,
           titleArabic: diagram.titleArabic,
-          imageFileName: diagram.imageFileName,
-          imageOriginalName: diagram.imageOriginalName,
-          imageSize: diagram.imageSize,
+          description: diagram.description,
+          descriptionArabic: diagram.descriptionArabic,
+          imageFileNameEn: diagram.imageFileNameEn,
+          imageFileNameAr: diagram.imageFileNameAr,
+          imageOriginalNameEn: diagram.imageOriginalNameEn,
+          imageOriginalNameAr: diagram.imageOriginalNameAr,
+          imageSizeEn: diagram.imageSizeEn,
+          imageSizeAr: diagram.imageSizeAr,
           downloadedAt: diagramData.downloadedAt,
           isDownloaded: diagramData.isDownloaded,
           hasFile: diagramData.hasFile,
-          localPath: diagramData.localPath
+          localPathEn: diagramData.localPathEn,
+          localPathAr: diagramData.localPathAr
         });
         
         console.log(`✅ Downloaded diagram: ${diagram.title || diagram.reference}`);
@@ -467,7 +499,8 @@ export const downloadAllDiagrams = async () => {
         // Store diagram metadata even if download failed
         const diagramData = {
           ...diagram,
-          localPath: null,
+          localPathEn: null,
+          localPathAr: null,
           downloadedAt: new Date().toISOString(),
           isDownloaded: true, // Mark as processed
           hasFile: false,
@@ -480,13 +513,19 @@ export const downloadAllDiagrams = async () => {
           reference: diagram.reference,
           title: diagram.title,
           titleArabic: diagram.titleArabic,
-          imageFileName: diagram.imageFileName,
-          imageOriginalName: diagram.imageOriginalName,
-          imageSize: diagram.imageSize,
+          description: diagram.description,
+          descriptionArabic: diagram.descriptionArabic,
+          imageFileNameEn: diagram.imageFileNameEn,
+          imageFileNameAr: diagram.imageFileNameAr,
+          imageOriginalNameEn: diagram.imageOriginalNameEn,
+          imageOriginalNameAr: diagram.imageOriginalNameAr,
+          imageSizeEn: diagram.imageSizeEn,
+          imageSizeAr: diagram.imageSizeAr,
           downloadedAt: diagramData.downloadedAt,
           isDownloaded: true,
           hasFile: false,
-          localPath: null,
+          localPathEn: null,
+          localPathAr: null,
           downloadError: error.message
         });
       }
@@ -509,99 +548,104 @@ export const downloadAllDiagrams = async () => {
 };
 
 /**
- * Download individual diagram image to device storage
+ * Download individual diagram image to device storage (bilingual version)
+ * Downloads BOTH English and Arabic versions and stores them separately
  */
 const downloadDiagramImage = async (diagram) => {
   try {
-    // Try new secure URL system first (Firebase Storage with paths)
-    let imageUrl = null;
-    
-    if (diagram.imageFilePath) {
-      try {
-        const { getDiagramImageUrl } = await import('./firebase');
-        imageUrl = await getDiagramImageUrl(diagram.imageFilePath);
-        console.log('✅ Using secure URL from imageFilePath');
-      } catch (error) {
-        console.warn('⚠️ Failed to generate secure URL from imageFilePath:', error);
-      }
-    }
-    
-    // Fallback to legacy imageUrl field if new system not available
-    if (!imageUrl && diagram.imageUrl) {
-      imageUrl = diagram.imageUrl;
-      console.log('✅ Using legacy URL from imageUrl field');
-    }
-    
-    if (!imageUrl) {
-      console.log(`❌ Diagram ${diagram.id} has no imageUrl or imageFilePath`);
-      return null;
-    }
-
-    // Use imageFileName from Firebase Storage (already unique and clean)
-    // This ensures the local filename matches what's in Firebase Storage
-    const fileName = diagram.imageFileName || 
-                    diagram.imageOriginalName ||
-                    (diagram.reference || diagram.title || `diagram_${diagram.id}`) + '.png';
-    
-    // Don't clean imageFileName since it's already a valid Firebase Storage name
-    // Only clean if we fall back to imageOriginalName
-    const cleanFileName = diagram.imageFileName ? fileName : fileName.replace(/[^a-zA-Z0-9._-]/g, '_');
-    
-    // Create local file path in document directory
-    const localUri = `${FileSystem.documentDirectory}diagrams/${cleanFileName}`;
-    
-    console.log(`🖼️ Downloading: ${diagram.title || diagram.reference}`);
-    console.log(`📄 Original: ${diagram.imageOriginalName}`);
-    console.log(`🔗 From: ${imageUrl}`);
-    console.log(`💾 To: ${localUri}`);
-    console.log(`📊 Size: ${diagram.imageSize} bytes`);
+    const { getDiagramImageUrl } = await import('./firebase');
+    const diagramsDir = `${FileSystem.documentDirectory}diagrams/`;
     
     // Create diagrams directory if it doesn't exist
-    const diagramsDir = `${FileSystem.documentDirectory}diagrams/`;
     const dirInfo = await FileSystem.getInfoAsync(diagramsDir);
     if (!dirInfo.exists) {
       await FileSystem.makeDirectoryAsync(diagramsDir, { intermediates: true });
       console.log('📁 Created diagrams directory');
     }
     
-    // Download the file
-    const downloadResult = await FileSystem.downloadAsync(imageUrl, localUri);
+    const result = {};
     
-    if (downloadResult.status === 200) {
-      console.log(`✅ Diagram downloaded successfully to: ${localUri}`);
-      
-      // Convert to base64 for React Native Image component
+    // Download English version
+    if (diagram.imageFilePathEn) {
       try {
-        const base64 = await FileSystem.readAsStringAsync(localUri, {
-          encoding: FileSystem.EncodingType.Base64,
-        });
+        const imageUrlEn = await getDiagramImageUrl(diagram.imageFilePathEn);
+        const fileNameEn = diagram.imageFileNameEn || `diagram_${diagram.id}_en.png`;
+        const localUriEn = `${diagramsDir}${fileNameEn}`;
         
-        // Determine MIME type from file extension
-        const extension = cleanFileName.split('.').pop().toLowerCase();
-        const mimeTypes = {
-          'jpg': 'image/jpeg',
-          'jpeg': 'image/jpeg',
-          'png': 'image/png',
-          'gif': 'image/gif',
-          'webp': 'image/webp'
-        };
-        const mimeType = mimeTypes[extension] || 'image/jpeg';
+        console.log(`🖼️ Downloading EN: ${diagram.title || diagram.reference}`);
+        console.log(`🔗 From: ${imageUrlEn}`);
+        console.log(`💾 To: ${localUriEn}`);
         
-        // Return base64 data URI
-        const base64Uri = `data:${mimeType};base64,${base64}`;
-        console.log(`✅ Converted to base64 (${base64.length} chars)`);
-        return base64Uri;
-      } catch (base64Error) {
-        console.error('Error converting to base64:', base64Error);
-        // Fallback to file URI if base64 conversion fails
-        return localUri;
+        const downloadResultEn = await FileSystem.downloadAsync(imageUrlEn, localUriEn);
+        
+        if (downloadResultEn.status === 200) {
+          // Convert to base64
+          const base64En = await FileSystem.readAsStringAsync(localUriEn, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+          
+          const extension = fileNameEn.split('.').pop().toLowerCase();
+          const mimeTypes = {
+            'jpg': 'image/jpeg',
+            'jpeg': 'image/jpeg',
+            'png': 'image/png',
+            'gif': 'image/gif',
+            'webp': 'image/webp'
+          };
+          const mimeType = mimeTypes[extension] || 'image/jpeg';
+          
+          result.localPathEn = `data:${mimeType};base64,${base64En}`;
+          console.log(`✅ EN diagram downloaded and converted to base64`);
+        }
+      } catch (error) {
+        console.error(`❌ Error downloading EN diagram:`, error);
+        result.localPathEn = null;
       }
-    } else {
-      console.error(`❌ Download failed with status: ${downloadResult.status}`);
-      return null;
     }
+    
+    // Download Arabic version
+    if (diagram.imageFilePathAr) {
+      try {
+        const imageUrlAr = await getDiagramImageUrl(diagram.imageFilePathAr);
+        const fileNameAr = diagram.imageFileNameAr || `diagram_${diagram.id}_ar.png`;
+        const localUriAr = `${diagramsDir}${fileNameAr}`;
+        
+        console.log(`🖼️ Downloading AR: ${diagram.titleArabic || diagram.reference}`);
+        console.log(`� From: ${imageUrlAr}`);
+        console.log(`💾 To: ${localUriAr}`);
+        
+        const downloadResultAr = await FileSystem.downloadAsync(imageUrlAr, localUriAr);
+        
+        if (downloadResultAr.status === 200) {
+          // Convert to base64
+          const base64Ar = await FileSystem.readAsStringAsync(localUriAr, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+          
+          const extension = fileNameAr.split('.').pop().toLowerCase();
+          const mimeTypes = {
+            'jpg': 'image/jpeg',
+            'jpeg': 'image/jpeg',
+            'png': 'image/png',
+            'gif': 'image/gif',
+            'webp': 'image/webp'
+          };
+          const mimeType = mimeTypes[extension] || 'image/jpeg';
+          
+          result.localPathAr = `data:${mimeType};base64,${base64Ar}`;
+          console.log(`✅ AR diagram downloaded and converted to base64`);
+        }
+      } catch (error) {
+        console.error(`❌ Error downloading AR diagram:`, error);
+        result.localPathAr = null;
+      }
+    }
+    
+    // Return object with both paths
+    return result.localPathEn || result.localPathAr ? result : null;
+    
   } catch (error) {
-    console.error('Error downloading diagram image:', error);
+    console.error('Error downloading diagram images:', error);
     return null;
   }
 };
