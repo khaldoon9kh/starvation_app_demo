@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,183 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useTranslation } from 'react-i18next';
 import { useCategories, useSubcategories, useBookmarks } from '../hooks/useFirebaseData';
 
+// Component to render subcategories - moved outside to prevent re-creation
+const SubcategoriesList = ({ categoryId, isRTL, i18n, navigation, expandedSubcategories, toggleSubcategory, isBookmarked }) => {
+  const { subcategories, loading, error } = useSubcategories(categoryId);
+
+  if (loading) {
+    return (
+      <View style={styles.loadingSubcategories}>
+        <ActivityIndicator size="small" color="#4CAF50" />
+        <Text style={styles.loadingText}>Loading subcategories...</Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.errorSubcategories}>
+        <Text style={styles.errorText}>Error loading subcategories</Text>
+      </View>
+    );
+  }
+
+  const navigateToSubcategory = (category, subcategory) => {
+    navigation.navigate('Article', { 
+      category, 
+      subcategory,
+      title: i18n.language === 'ar' ? subcategory.titleArabic || subcategory.title : subcategory.title
+    });
+  };
+
+  return (
+    <View style={[
+      styles.subItemsContainer,
+      isRTL 
+        ? { borderRightWidth: 4, borderRightColor: '#2196F3', borderLeftWidth: 0 }
+        : { borderLeftWidth: 4, borderLeftColor: '#2196F3', borderRightWidth: 0 }
+    ]}>
+      {subcategories.map((subcategory) => (
+        <View key={subcategory.id}>
+          {subcategory.subSubCategories && subcategory.subSubCategories.length > 0 ? (
+            <View>
+              <TouchableOpacity
+                style={[
+                  styles.subItem, 
+                  styles.expandableSubItem,
+                  { 
+                    flexDirection: isRTL ? 'row-reverse' : 'row',
+                    borderLeftColor: isRTL ? 'transparent' : '#4CAF50',
+                    borderRightColor: isRTL ? '#4CAF50' : 'transparent',
+                    borderLeftWidth: isRTL ? 0 : 4,
+                    borderRightWidth: isRTL ? 4 : 0,
+                    marginBottom: expandedSubcategories[subcategory.id] ? 0 : 5,  
+                    borderBottomLeftRadius: expandedSubcategories[subcategory.id] ? 0 : 6,
+                    borderBottomRightRadius: expandedSubcategories[subcategory.id] ? 0 : 6,
+                  }
+                ]}
+                onPress={() => toggleSubcategory(subcategory.id)}>
+                <View style={styles.itemTextContainer}>
+                  <Text style={[styles.subItemText, isRTL && styles.rtlText]}>
+                    {i18n.language === 'ar' ? subcategory.titleAr || subcategory.titleEn : subcategory.titleEn}
+                  </Text>
+                  {isBookmarked(subcategory.id, 'subcategory') && (
+                    <Icon 
+                      name="bookmark" 
+                      size={16} 
+                      color="#FF9800" 
+                      style={[
+                        styles.bookmarkIcon,
+                        isRTL ? { marginRight: 8, marginLeft: 0 } : { marginLeft: 8, marginRight: 0 }
+                      ]}
+                    />
+                  )}
+                </View>
+                <Icon 
+                  name={expandedSubcategories[subcategory.id] 
+                    ? 'keyboard-arrow-down' 
+                    : isRTL ? 'keyboard-arrow-left' : 'keyboard-arrow-right'} 
+                  size={20} 
+                  color="#666" 
+                />
+              </TouchableOpacity>
+              
+              {expandedSubcategories[subcategory.id] && (
+                <View 
+                  style={[
+                  styles.subSubItemsContainer,
+                  { 
+                    borderLeftColor: isRTL ? 'transparent' : '#4CAF50',
+                    borderRightColor: isRTL ? '#4CAF50' : 'transparent',
+                    borderLeftWidth: isRTL ? 0 : 4,
+                    borderRightWidth: isRTL ? 4 : 0,
+                  }
+                ]}
+                >
+                  {subcategory.subSubCategories.map((subSub) => (
+                    <TouchableOpacity
+                      key={subSub.id}
+                      style={[
+                        styles.subSubItem,
+                        { 
+                          flexDirection: isRTL ? 'row-reverse' : 'row',
+                          borderLeftColor: isRTL ? 'transparent' : 'black',
+                          borderRightColor: isRTL ? 'black' : 'transparent',
+                          borderLeftWidth: isRTL ? 0 : 4,
+                          borderRightWidth: isRTL ? 4 : 0,
+                          marginLeft: 10,
+                        }
+                      ]}
+                      onPress={() => navigateToSubcategory({ id: categoryId }, subSub)}>
+                      <View style={styles.itemTextContainer}>
+                        <Text style={[styles.subSubItemText, isRTL && styles.rtlText]}>
+                          {i18n.language === 'ar' ? subSub.titleAr || subSub.titleEn : subSub.titleEn}
+                        </Text>
+                        {isBookmarked(subSub.id, 'subcategory') && (
+                          <Icon 
+                            name="bookmark" 
+                            size={14} 
+                            color="#FF9800" 
+                            style={[
+                              styles.bookmarkIcon,
+                              isRTL ? { marginRight: 8, marginLeft: 0 } : { marginLeft: 8, marginRight: 0 }
+                            ]}
+                          />
+                        )}
+                      </View>
+                      <Icon 
+                        name={isRTL ? 'keyboard-arrow-left' : 'keyboard-arrow-right'} 
+                        size={16} 
+                        color="#666" 
+                      />
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+            </View>
+          ) : (
+            <TouchableOpacity
+              style={[
+                  styles.subItem, 
+                  styles.expandableSubItem,
+                  { 
+                    flexDirection: isRTL ? 'row-reverse' : 'row',
+                    borderLeftColor: isRTL ? 'transparent' : '#4CAF50',
+                    borderRightColor: isRTL ? '#4CAF50' : 'transparent',
+                    borderLeftWidth: isRTL ? 0 : 4,
+                    borderRightWidth: isRTL ? 4 : 0,
+                  }
+                ]}
+              onPress={() => navigateToSubcategory({ id: categoryId }, subcategory)}>
+              <View style={styles.itemTextContainer}>
+                <Text style={[styles.subItemText, isRTL && styles.rtlText]}>
+                  {i18n.language === 'ar' ? subcategory.titleAr || subcategory.titleEn : subcategory.titleEn}
+                </Text>
+                {isBookmarked(subcategory.id, 'subcategory') && (
+                  <Icon 
+                    name="bookmark" 
+                    size={16} 
+                    color="#FF9800" 
+                    style={[
+                      styles.bookmarkIcon,
+                      isRTL ? { marginRight: 8, marginLeft: 0 } : { marginLeft: 8, marginRight: 0 }
+                    ]}
+                  />
+                )}
+              </View>
+              <Icon 
+                name={isRTL ? 'keyboard-arrow-left' : 'keyboard-arrow-right'} 
+                size={20} 
+                color="#666" 
+              />
+            </TouchableOpacity>
+          )}
+        </View>
+      ))}
+    </View>
+  );
+};
+
 const LibraryScreen = ({navigation}) => {
   const { t, i18n } = useTranslation();
   const { categories, loading: categoriesLoading, error: categoriesError } = useCategories();
@@ -20,6 +197,7 @@ const LibraryScreen = ({navigation}) => {
   const [expandedSections, setExpandedSections] = useState({});
   const [expandedSubcategories, setExpandedSubcategories] = useState({});
   const [refreshing, setRefreshing] = useState(false);
+  const scrollViewRef = useRef(null);
   const isRTL = i18n.language === 'ar';
 
   const toggleSection = (sectionId) => {
@@ -38,17 +216,8 @@ const LibraryScreen = ({navigation}) => {
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
-    // Refresh logic can be added here if needed
     setTimeout(() => setRefreshing(false), 1000);
   }, []);
-
-  const navigateToSubcategory = (category, subcategory) => {
-    navigation.navigate('Article', { 
-      category, 
-      subcategory,
-      title: i18n.language === 'ar' ? subcategory.titleArabic || subcategory.title : subcategory.title
-    });
-  };
 
   if (categoriesLoading && categories.length === 0) {
     return (
@@ -70,181 +239,6 @@ const LibraryScreen = ({navigation}) => {
       </View>
     );
   }
-
-
-      
-
-
-  // Component to render subcategories for a category
-  const SubcategoriesList = ({ categoryId }) => {
-    const { subcategories, loading, error } = useSubcategories(categoryId);
-
-    if (loading) {
-      return (
-        <View style={styles.loadingSubcategories}>
-          <ActivityIndicator size="small" color="#4CAF50" />
-          <Text style={styles.loadingText}>Loading subcategories...</Text>
-        </View>
-      );
-    }
-
-    if (error) {
-      return (
-        <View style={styles.errorSubcategories}>
-          <Text style={styles.errorText}>Error loading subcategories</Text>
-        </View>
-      );
-    }
-
-    return (
-      <View style={[
-        styles.subItemsContainer,
-        isRTL 
-          ? { borderRightWidth: 4, borderRightColor: '#2196F3', borderLeftWidth: 0 }
-          : { borderLeftWidth: 4, borderLeftColor: '#2196F3', borderRightWidth: 0 }
-      ]}>
-        {subcategories.map((subcategory) => (
-          <View key={subcategory.id}>
-            {subcategory.subSubCategories && subcategory.subSubCategories.length > 0 ? (
-              // Render expandable subcategory with subSubCategories
-              <View>
-                <TouchableOpacity
-                  style={[
-                    styles.subItem, 
-                    styles.expandableSubItem,
-                    { 
-                      flexDirection: isRTL ? 'row-reverse' : 'row',
-                      borderLeftColor: isRTL ? 'transparent' : '#4CAF50',
-                      borderRightColor: isRTL ? '#4CAF50' : 'transparent',
-                      borderLeftWidth: isRTL ? 0 : 4,
-                      borderRightWidth: isRTL ? 4 : 0,
-                      marginBottom: expandedSubcategories[subcategory.id] ? 0 : 5,  
-                      borderBottomLeftRadius: expandedSubcategories[subcategory.id] ? 0 : 6,
-                      borderBottomRightRadius: expandedSubcategories[subcategory.id] ? 0 : 6,
-                    }
-                  ]}
-                  onPress={() => toggleSubcategory(subcategory.id)}>
-                  <View style={styles.itemTextContainer}>
-                    <Text style={[styles.subItemText, isRTL && styles.rtlText]}>
-                      {i18n.language === 'ar' ? subcategory.titleAr || subcategory.titleEn : subcategory.titleEn}
-                    </Text>
-                    {isBookmarked(subcategory.id, 'subcategory') && (
-                      <Icon 
-                        name="bookmark" 
-                        size={16} 
-                        color="#FF9800" 
-                        style={[
-                          styles.bookmarkIcon,
-                          isRTL ? { marginRight: 8, marginLeft: 0 } : { marginLeft: 8, marginRight: 0 }
-                        ]}
-                      />
-                    )}
-                  </View>
-                  <Icon 
-                    name={expandedSubcategories[subcategory.id] 
-                      ? 'keyboard-arrow-down' 
-                      : isRTL ? 'keyboard-arrow-left' : 'keyboard-arrow-right'} 
-                    size={20} 
-                    color="#666" 
-                  />
-                </TouchableOpacity>
-                
-                {expandedSubcategories[subcategory.id] && (
-                  <View 
-                    style={[
-                    styles.subSubItemsContainer,
-                    { 
-                      borderLeftColor: isRTL ? 'transparent' : '#4CAF50',
-                      borderRightColor: isRTL ? '#4CAF50' : 'transparent',
-                      borderLeftWidth: isRTL ? 0 : 4,
-                      borderRightWidth: isRTL ? 4 : 0,
-                    }
-                  ]}
-                  >
-                    {subcategory.subSubCategories.map((subSub) => (
-                      <TouchableOpacity
-                        key={subSub.id}
-                        style={[
-                          styles.subSubItem,
-                          { 
-                            flexDirection: isRTL ? 'row-reverse' : 'row',
-                            borderLeftColor: isRTL ? 'transparent' : 'black',
-                            borderRightColor: isRTL ? 'black' : 'transparent',
-                            borderLeftWidth: isRTL ? 0 : 4,
-                            borderRightWidth: isRTL ? 4 : 0,
-                            marginLeft: 10,
-                          }
-                        ]}
-                        onPress={() => navigateToSubcategory({ id: categoryId }, subSub)}>
-                        <View style={styles.itemTextContainer}>
-                          <Text style={[styles.subSubItemText, isRTL && styles.rtlText]}>
-                            {i18n.language === 'ar' ? subSub.titleAr || subSub.titleEn : subSub.titleEn}
-                          </Text>
-                          {isBookmarked(subSub.id, 'subcategory') && (
-                            <Icon 
-                              name="bookmark" 
-                              size={14} 
-                              color="#FF9800" 
-                              style={[
-                                styles.bookmarkIcon,
-                                isRTL ? { marginRight: 8, marginLeft: 0 } : { marginLeft: 8, marginRight: 0 }
-                              ]}
-                            />
-                          )}
-                        </View>
-                        <Icon 
-                          name={isRTL ? 'keyboard-arrow-left' : 'keyboard-arrow-right'} 
-                          size={16} 
-                          color="#666" 
-                        />
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                )}
-              </View>
-            ) : (
-              // Render regular subcategory without subSubCategories
-              <TouchableOpacity
-                style={[
-                    styles.subItem, 
-                    styles.expandableSubItem,
-                    { 
-                      flexDirection: isRTL ? 'row-reverse' : 'row',
-                      borderLeftColor: isRTL ? 'transparent' : '#4CAF50',
-                      borderRightColor: isRTL ? '#4CAF50' : 'transparent',
-                      borderLeftWidth: isRTL ? 0 : 4,
-                      borderRightWidth: isRTL ? 4 : 0,
-                    }
-                  ]}
-                onPress={() => navigateToSubcategory({ id: categoryId }, subcategory)}>
-                <View style={styles.itemTextContainer}>
-                  <Text style={[styles.subItemText, isRTL && styles.rtlText]}>
-                    {i18n.language === 'ar' ? subcategory.titleAr || subcategory.titleEn : subcategory.titleEn}
-                  </Text>
-                  {isBookmarked(subcategory.id, 'subcategory') && (
-                    <Icon 
-                      name="bookmark" 
-                      size={16} 
-                      color="#FF9800" 
-                      style={[
-                        styles.bookmarkIcon,
-                        isRTL ? { marginRight: 8, marginLeft: 0 } : { marginLeft: 8, marginRight: 0 }
-                      ]}
-                    />
-                  )}
-                </View>
-                <Icon 
-                  name={isRTL ? 'keyboard-arrow-left' : 'keyboard-arrow-right'} 
-                  size={20} 
-                  color="#666" 
-                />
-              </TouchableOpacity>
-            )}
-          </View>
-        ))}
-      </View>
-    );
-  };
 
   const renderCategory = (category) => {
     return (
@@ -277,7 +271,15 @@ const LibraryScreen = ({navigation}) => {
         </TouchableOpacity>
         
         {expandedSections[category.id] && (
-          <SubcategoriesList categoryId={category.id} />
+          <SubcategoriesList 
+            categoryId={category.id}
+            isRTL={isRTL}
+            i18n={i18n}
+            navigation={navigation}
+            expandedSubcategories={expandedSubcategories}
+            toggleSubcategory={toggleSubcategory}
+            isBookmarked={isBookmarked}
+          />
         )}
       </View>
     );
@@ -285,7 +287,10 @@ const LibraryScreen = ({navigation}) => {
 
   return (
     <ScrollView 
+      ref={scrollViewRef}
       style={styles.container}
+      nestedScrollEnabled={true}
+      keyboardShouldPersistTaps="handled"
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
       }>

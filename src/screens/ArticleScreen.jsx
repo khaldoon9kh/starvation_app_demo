@@ -452,41 +452,6 @@ const ArticleScreen = ({route, navigation}) => {
           {processContentWithTerms(content) || `This section provides comprehensive information about **${articleTitle.toLowerCase()}**. Content will be loaded from Firebase when available.\n\n### Key Features\n- Dynamic content loading\n- Markdown formatting support\n- Multi-language support\n- Enhanced glossary term linking\n- Green horizontal dividers\n\n---\n\n### Sample Content\nWhen conducting an [investigation](Investigation), it's important to identify cases of [malnutrition](malnutrition-1) early. Click on the highlighted terms to see their definitions from the glossary.\n\nThis demonstrates how [flexible glossary linking](Sample Term) works in the content with different display text.\n\n---\n\n**Key Sources**\n\n[Starvation Manual](starvation-manual), p. 11.`}
           </Markdown>
         )}
-
-        <Text style={[
-          styles.sectionTitle,
-          { textAlign: isRTL ? 'right' : 'left' }
-        ]}>Related Resources</Text>
-        
-        <TouchableOpacity style={[
-          styles.relatedLink,
-          { flexDirection: isRTL ? 'row-reverse' : 'row' }
-        ]}>
-          <Text style={[
-            styles.linkText,
-            { textAlign: isRTL ? 'right' : 'left' }
-          ]}>Related Template: Investigation Checklist</Text>
-          <Icon 
-            name={isRTL ? "keyboard-arrow-left" : "keyboard-arrow-right"} 
-            size={20} 
-            color="#4CAF50" 
-          />
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={[
-          styles.relatedLink,
-          { flexDirection: isRTL ? 'row-reverse' : 'row' }
-        ]}>
-          <Text style={[
-            styles.linkText,
-            { textAlign: isRTL ? 'right' : 'left' }
-          ]}>Related Article: Basic Investigation Standards</Text>
-          <Icon 
-            name={isRTL ? "keyboard-arrow-left" : "keyboard-arrow-right"} 
-            size={20} 
-            color="#4CAF50" 
-          />
-        </TouchableOpacity>
       </ScrollView>
 
       {/* Glossary Term Modal */}
