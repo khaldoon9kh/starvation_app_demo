@@ -2,31 +2,47 @@
   "expo": {
     "name": "GRC Starvation Toolkit",
     "slug": "grc-starvation-toolkit",
-    "version": "2022.1.0",
+    "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
+    "icon": "./assets/images/icon-1024.png",
+    "splash": {
+      "image": "./assets/images/image.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
     "updates": {
       "fallbackToCacheTimeout": 0,
-      "url": "https://u.expo.dev/your-project-id"
+      "url": "https://u.expo.dev/29211090-5cd9-4311-997d-0197004a6bf7"
     },
     "assetBundlePatterns": [
       "**/*"
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.grc.starvation.toolkit"
+      "bundleIdentifier": "com.grc.starvation.toolkit",
+      "buildNumber": "1",
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "This app needs access to your photo library to save diagrams and templates.",
+        "NSPhotoLibraryAddUsageDescription": "This app needs permission to save images to your photo library."
+      }
     },
     "android": {
       "package": "com.grc.starvation.toolkit",
       "compileSdkVersion": 34,
       "targetSdkVersion": 34,
-      "buildToolsVersion": "34.0.0"
+      "buildToolsVersion": "34.0.0",
+      "versionCode": 1
     },
     "newArchEnabled": true,
     "extra": {
       "eas": {
         "projectId": "29211090-5cd9-4311-997d-0197004a6bf7"
       }
+    },
+    "owner": "your-expo-username",
+    "runtimeVersion": {
+      "policy": "appVersion"
     }
   }
 }
