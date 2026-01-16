@@ -26,20 +26,6 @@ const SavedScreen = () => {
     refresh().finally(() => setRefreshing(false));
   }, [refresh]);
 
-  // Debug function to check bookmark data
-  React.useEffect(() => {
-    if (bookmarks && bookmarks.length > 0) {
-      console.log('📋 Current bookmarks:', bookmarks.map(b => ({
-        id: b.id,
-        title: b.title,
-        titleArabic: b.titleArabic,
-        type: b.type,
-        hasFullData: !!b.fullData,
-        fullDataKeys: b.fullData ? Object.keys(b.fullData) : []
-      })));
-    }
-  }, [bookmarks]);
-
   const handleItemPress = (bookmark) => {
     if (bookmark.type === 'subcategory') {
       // Use the stored full data for proper navigation with fallbacks
@@ -53,13 +39,6 @@ const SavedScreen = () => {
         hasContent: true,
         level: 1
       };
-      
-      console.log('📖 Navigating to saved article:', {
-        id: subcategoryData.id,
-        title: subcategoryData.titleEn,
-        titleAr: subcategoryData.titleAr,
-        hasContent: subcategoryData.hasContent
-      });
       
       // Navigate directly to the article without going through Library first
       navigation.navigate('Article', {
@@ -109,17 +88,6 @@ const SavedScreen = () => {
   };
 
   const getItemTitle = (bookmark) => {
-    console.log('🔍 Getting title for bookmark:', {
-      id: bookmark.id,
-      title: bookmark.title,
-      titleArabic: bookmark.titleArabic,
-      fullData: bookmark.fullData ? {
-        titleEn: bookmark.fullData.titleEn,
-        titleAr: bookmark.fullData.titleAr
-      } : null,
-      language: i18n.language
-    });
-
     // Try to get title from fullData first, then from bookmark directly
     const englishTitle = bookmark.fullData?.titleEn || bookmark.title || bookmark.fullData?.title;
     const arabicTitle = bookmark.fullData?.titleAr || bookmark.titleArabic || bookmark.fullData?.titleArabic;

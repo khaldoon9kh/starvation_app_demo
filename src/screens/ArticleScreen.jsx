@@ -40,14 +40,6 @@ const ArticleScreen = ({route, navigation}) => {
         const downloaded = await getLocalDiagrams();
         setLocalDiagrams(downloaded);
         setDiagramsLoaded(true);
-        console.log(`📥 Loaded ${Object.keys(downloaded).length} local diagrams`);
-        console.log(`📁 Document directory: ${FileSystem.documentDirectory}`);
-        
-        // Debug: Log first diagram path if available
-        const firstDiagram = Object.values(downloaded)[0];
-        if (firstDiagram) {
-          console.log(`📍 Sample diagram path: ${firstDiagram.localPath}`);
-        }
       } catch (error) {
         console.error('Error loading local diagrams:', error);
         setDiagramsLoaded(true); // Set to true even on error to avoid infinite loading
@@ -56,19 +48,6 @@ const ArticleScreen = ({route, navigation}) => {
     
     loadLocalDiagrams();
   }, []);
-  
-  // Debug logging
-  console.log('📖 ArticleScreen received data:', {
-    title,
-    subcategory: subcategory ? {
-      id: subcategory.id,
-      titleEn: subcategory.titleEn,
-      titleAr: subcategory.titleAr,
-      contentEn: subcategory.contentEn ? 'Has content' : 'No content',
-      contentAr: subcategory.contentAr ? 'Has content' : 'No content'
-    } : null,
-    category: category ? { id: category.id } : null
-  });
 
   const articleTitle = title || (i18n.language === 'ar' 
     ? subcategory?.titleAr || subcategory?.titleEn || subcategory?.title 
@@ -106,20 +85,11 @@ const ArticleScreen = ({route, navigation}) => {
   // Helper function to find diagram by reference and return local path (bilingual version)
   const findDiagramByReference = (reference) => {
     if (!reference) {
-      console.log(`❌ findDiagramByReference called with empty reference`);
       return null;
     }
     
-    console.log(`🔍 Looking for diagram with reference: "${reference}" (language: ${i18n.language})`);
-    console.log(`📦 Local diagrams available:`, Object.values(localDiagrams).map(d => ({
-      reference: d.reference,
-      hasLocalPathEn: !!d.localPathEn,
-      hasLocalPathAr: !!d.localPathAr
-    })));
-    
     // First check local downloaded diagrams (OFFLINE FIRST)
     const localDiagram = Object.values(localDiagrams).find(d => {
-      console.log(`  Comparing "${d.reference}" === "${reference}": ${d.reference === reference}`);
       return d.reference === reference;
     });
     
@@ -128,23 +98,17 @@ const ArticleScreen = ({route, navigation}) => {
       const localPath = i18n.language === 'ar' ? localDiagram.localPathAr : localDiagram.localPathEn;
       
       if (localPath) {
-        console.log(`✅ Found local diagram (${i18n.language}): ${reference} at ${localPath}`);
         return {
           ...localDiagram,
           imageUrl: localPath // Use language-specific local path for offline access
         };
-      } else {
-        console.log(`⚠️ Found diagram ${reference} but no localPath for language ${i18n.language}`);
       }
-    } else {
-      console.log(`❌ No local diagram found for reference: ${reference}`);
     }
     
     // Fallback to Firebase diagrams (ONLINE)
     if (diagrams && diagrams.length > 0) {
       const diagram = diagrams.find(d => d.reference === reference);
       if (diagram) {
-        console.log(`⚠️ Using online diagram: ${reference}`);
         // Use the correct language path even for online diagrams
         const imagePath = i18n.language === 'ar' ? diagram.imageFilePathAr : diagram.imageFilePathEn;
         return {
@@ -179,11 +143,7 @@ const ArticleScreen = ({route, navigation}) => {
       const hasExtension = diagramRef.match(/\.(png|jpg|jpeg|gif|webp)$/i);
       const refWithoutExt = hasExtension ? diagramRef.replace(/\.(png|jpg|jpeg|gif|webp)$/i, '') : diagramRef;
       
-      console.log(`🔍 Processing image reference: ${diagramRef} (without ext: ${refWithoutExt})`);
-      
       if (hasExtension) {
-        console.log(`📦 Available local diagrams: ${Object.keys(localDiagrams).length}`);
-        
         // Try to find in local diagrams by filename (bilingual version)
         const localDiagram = Object.values(localDiagrams).find(d => {
           const fileNameEn = d.imageFileNameEn;
@@ -197,16 +157,6 @@ const ArticleScreen = ({route, navigation}) => {
                          originalNameAr === diagramRef ||
                          d.localPathEn?.endsWith(diagramRef) ||
                          d.localPathAr?.endsWith(diagramRef);
-          if (matches) {
-            console.log(`✅ Matched diagram by filename:`, {
-              imageFileNameEn: fileNameEn,
-              imageFileNameAr: fileNameAr,
-              imageOriginalNameEn: originalNameEn,
-              imageOriginalNameAr: originalNameAr,
-              localPathEn: d.localPathEn,
-              localPathAr: d.localPathAr
-            });
-          }
           return matches;
         });
         
@@ -214,7 +164,6 @@ const ArticleScreen = ({route, navigation}) => {
           // Use language-specific path
           const localPath = i18n.language === 'ar' ? localDiagram.localPathAr : localDiagram.localPathEn;
           if (localPath) {
-            console.log(`🖼️ Found diagram by filename (${i18n.language}): ${diagramRef} at ${localPath}`);
             return `![${description || diagramRef}](${localPath})`;
           }
         }
@@ -222,7 +171,6 @@ const ArticleScreen = ({route, navigation}) => {
         // Try matching by reference (without extension)
         const diagramByRef = findDiagramByReference(refWithoutExt);
         if (diagramByRef && diagramByRef.imageUrl) {
-          console.log(`🖼️ Found diagram by reference (stripped ext): ${refWithoutExt} at ${diagramByRef.imageUrl}`);
           const title = i18n.language === 'ar' ? diagramByRef.titleArabic : diagramByRef.title;
           return `![${description || title || 'Diagram'}](${diagramByRef.imageUrl})`;
         }
@@ -230,8 +178,6 @@ const ArticleScreen = ({route, navigation}) => {
         // If not found in downloaded diagrams, construct path to diagrams directory
         if (FileSystem && FileSystem.documentDirectory) {
           const localPath = `${FileSystem.documentDirectory}diagrams/${diagramRef}`;
-          console.log(`🖼️ Using constructed path for image: ${localPath}`);
-          console.warn(`⚠️ Image ${diagramRef} not found in downloaded diagrams, using constructed path. Make sure to download content first!`);
           return `![${description || diagramRef}](${localPath})`;
         } else {
           console.error(`❌ FileSystem.documentDirectory not available!`);
@@ -245,11 +191,8 @@ const ArticleScreen = ({route, navigation}) => {
         // Use localPath (offline) or imageUrl (online) or imagePath (fallback)
         const imageUrl = diagram.localPath || diagram.imageUrl || diagram.imagePath;
         if (imageUrl) {
-          console.log(`🖼️ Embedding diagram: ${diagramRef} from ${imageUrl}`);
           return `![${description || diagram.title || 'Diagram'}](${imageUrl})`;
         }
-      } else {
-        console.warn(`⚠️ Diagram not found: ${diagramRef}`);
       }
       
       // Return original for non-existent diagrams
@@ -287,8 +230,7 @@ const ArticleScreen = ({route, navigation}) => {
       if (itemIsBookmarked) {
         const success = await removeBookmark(subcategory.id, 'subcategory');
         if (success) {
-          // Optional: Show toast or brief feedback for removal
-          console.log('Article removed from saved items');
+          // Bookmark removed successfully
         }
       } else {
         // Ensure we have proper data structure for bookmark
@@ -299,14 +241,6 @@ const ArticleScreen = ({route, navigation}) => {
           titleEn: subcategory.titleEn || subcategory.title || articleTitle,
           titleAr: subcategory.titleAr || subcategory.titleArabic,
         };
-        
-        console.log('💾 Creating bookmark with data:', {
-          id: bookmarkData.id,
-          titleEn: bookmarkData.titleEn,
-          titleAr: bookmarkData.titleAr,
-          hasContentEn: !!bookmarkData.contentEn,
-          hasContentAr: !!bookmarkData.contentAr
-        });
         
         const success = await addBookmark(bookmarkData);
         if (success) {

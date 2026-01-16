@@ -15,11 +15,8 @@ const DIAGRAMS_METADATA_KEY = 'diagrams_metadata';
  */
 export const downloadAllTemplates = async () => {
   try {
-    console.log('📥 Starting template download...');
-    
     // Fetch all templates from Firebase
     const templates = await getTemplates();
-    console.log(`📊 Found ${templates.length} templates to download`);
     
     const downloadedTemplates = {};
     const templatesMetadata = [];
@@ -63,8 +60,6 @@ export const downloadAllTemplates = async () => {
           localPathEn: templateData.localPathEn,
           localPathAr: templateData.localPathAr
         });
-        
-        console.log(`✅ Downloaded: ${template.title || template.titleEn}`);
       } catch (error) {
         console.error(`❌ Error downloading template ${template.id}:`, error);
         
@@ -110,7 +105,6 @@ export const downloadAllTemplates = async () => {
     await AsyncStorage.setItem(TEMPLATES_STORAGE_KEY, JSON.stringify(downloadedTemplates));
     await AsyncStorage.setItem(TEMPLATES_METADATA_KEY, JSON.stringify(templatesMetadata));
     
-    console.log('💾 Templates stored locally successfully');
     return { 
       success: true, 
       totalTemplates: templates.length, 
@@ -135,7 +129,6 @@ const downloadTemplateFile = async (template) => {
     const dirInfo = await FileSystem.getInfoAsync(templatesDir);
     if (!dirInfo.exists) {
       await FileSystem.makeDirectoryAsync(templatesDir, { intermediates: true });
-      console.log(`📁 Created directory: ${templatesDir}`);
     }
     
     const result = {};
@@ -147,20 +140,12 @@ const downloadTemplateFile = async (template) => {
         const fileNameEn = template.pdfFileNameEn || `template_${template.id}_en.${template.fileExtensionEn || 'pdf'}`;
         const localUriEn = `${templatesDir}${fileNameEn}`;
         
-        console.log(`📥 Downloading EN: ${template.title}`);
-        console.log(`📄 Original: ${template.pdfOriginalNameEn}`);
-        console.log(`🔗 From: ${fileUrlEn}`);
-        console.log(`💾 To: ${localUriEn}`);
-        console.log(`📊 Size: ${template.pdfSizeEn} bytes`);
-        
         const downloadResultEn = await FileSystem.downloadAsync(fileUrlEn, localUriEn);
         
         if (downloadResultEn.status === 200) {
           result.localPathEn = downloadResultEn.uri;
-          console.log(`✅ EN template downloaded successfully`);
         }
       } catch (error) {
-        console.error(`❌ Error downloading EN template:`, error);
         result.localPathEn = null;
       }
     }
@@ -172,20 +157,12 @@ const downloadTemplateFile = async (template) => {
         const fileNameAr = template.pdfFileNameAr || `template_${template.id}_ar.${template.fileExtensionAr || 'pdf'}`;
         const localUriAr = `${templatesDir}${fileNameAr}`;
         
-        console.log(`📥 Downloading AR: ${template.titleArabic}`);
-        console.log(`� Original: ${template.pdfOriginalNameAr}`);
-        console.log(`🔗 From: ${fileUrlAr}`);
-        console.log(`💾 To: ${localUriAr}`);
-        console.log(`📊 Size: ${template.pdfSizeAr} bytes`);
-        
         const downloadResultAr = await FileSystem.downloadAsync(fileUrlAr, localUriAr);
         
         if (downloadResultAr.status === 200) {
           result.localPathAr = downloadResultAr.uri;
-          console.log(`✅ AR template downloaded successfully`);
         }
       } catch (error) {
-        console.error(`❌ Error downloading AR template:`, error);
         result.localPathAr = null;
       }
     }
@@ -194,7 +171,6 @@ const downloadTemplateFile = async (template) => {
     return result.localPathEn || result.localPathAr ? result : null;
     
   } catch (error) {
-    console.error(`❌ Error downloading template ${template.id}:`, error);
     return null;
   }
 };
@@ -312,7 +288,6 @@ export const clearDownloadedTemplates = async () => {
   try {
     await AsyncStorage.removeItem(TEMPLATES_STORAGE_KEY);
     await AsyncStorage.removeItem(TEMPLATES_METADATA_KEY);
-    console.log('🗑️ All downloaded templates cleared');
   } catch (error) {
     console.error('Error clearing downloaded templates:', error);
     throw error;
@@ -360,8 +335,6 @@ export const openLocalTemplate = async (template, language = 'en') => {
     }
     
     const title = language === 'ar' ? template.titleArabic : template.title;
-    console.log(`📱 Opening template (${language}): ${title}`);
-    console.log(`📄 File path: ${localPath}`);
     
     // Use Expo Sharing to open with native "open with" dialog
     const isAvailable = await Sharing.isAvailableAsync();
@@ -374,7 +347,6 @@ export const openLocalTemplate = async (template, language = 'en') => {
       mimeType: getMimeType(template, language),
     });
     
-    console.log(`✅ Successfully opened template`);
     return { success: true };
     
   } catch (error) {
@@ -427,10 +399,8 @@ export const updateTemplates = async () => {
     const needsUpdate = Object.keys(localTemplates).length !== latestTemplates.length;
     
     if (needsUpdate) {
-      console.log('🔄 Templates update needed, downloading...');
       return await downloadAllTemplates();
     } else {
-      console.log('✅ Templates are up to date');
       return { success: true, message: 'Templates are up to date' };
     }
   } catch (error) {
@@ -446,11 +416,8 @@ export const updateTemplates = async () => {
  */
 export const downloadAllDiagrams = async () => {
   try {
-    console.log('🖼️ Starting diagram download...');
-    
     // Fetch all diagrams from Firebase
     const diagrams = await getDiagrams();
-    console.log(`📊 Found ${diagrams.length} diagrams to download`);
     
     const downloadedDiagrams = {};
     const diagramsMetadata = [];
@@ -491,8 +458,6 @@ export const downloadAllDiagrams = async () => {
           localPathEn: diagramData.localPathEn,
           localPathAr: diagramData.localPathAr
         });
-        
-        console.log(`✅ Downloaded diagram: ${diagram.title || diagram.reference}`);
       } catch (error) {
         console.error(`❌ Error downloading diagram ${diagram.id}:`, error);
         
@@ -535,7 +500,6 @@ export const downloadAllDiagrams = async () => {
     await AsyncStorage.setItem(DIAGRAMS_STORAGE_KEY, JSON.stringify(downloadedDiagrams));
     await AsyncStorage.setItem(DIAGRAMS_METADATA_KEY, JSON.stringify(diagramsMetadata));
     
-    console.log('💾 Diagrams stored locally successfully');
     return { 
       success: true, 
       totalDiagrams: diagrams.length, 
@@ -560,7 +524,6 @@ const downloadDiagramImage = async (diagram) => {
     const dirInfo = await FileSystem.getInfoAsync(diagramsDir);
     if (!dirInfo.exists) {
       await FileSystem.makeDirectoryAsync(diagramsDir, { intermediates: true });
-      console.log('📁 Created diagrams directory');
     }
     
     const result = {};
@@ -571,10 +534,6 @@ const downloadDiagramImage = async (diagram) => {
         const imageUrlEn = await getDiagramImageUrl(diagram.imageFilePathEn);
         const fileNameEn = diagram.imageFileNameEn || `diagram_${diagram.id}_en.png`;
         const localUriEn = `${diagramsDir}${fileNameEn}`;
-        
-        console.log(`🖼️ Downloading EN: ${diagram.title || diagram.reference}`);
-        console.log(`🔗 From: ${imageUrlEn}`);
-        console.log(`💾 To: ${localUriEn}`);
         
         const downloadResultEn = await FileSystem.downloadAsync(imageUrlEn, localUriEn);
         
@@ -595,10 +554,8 @@ const downloadDiagramImage = async (diagram) => {
           const mimeType = mimeTypes[extension] || 'image/jpeg';
           
           result.localPathEn = `data:${mimeType};base64,${base64En}`;
-          console.log(`✅ EN diagram downloaded and converted to base64`);
         }
       } catch (error) {
-        console.error(`❌ Error downloading EN diagram:`, error);
         result.localPathEn = null;
       }
     }
@@ -609,10 +566,6 @@ const downloadDiagramImage = async (diagram) => {
         const imageUrlAr = await getDiagramImageUrl(diagram.imageFilePathAr);
         const fileNameAr = diagram.imageFileNameAr || `diagram_${diagram.id}_ar.png`;
         const localUriAr = `${diagramsDir}${fileNameAr}`;
-        
-        console.log(`🖼️ Downloading AR: ${diagram.titleArabic || diagram.reference}`);
-        console.log(`� From: ${imageUrlAr}`);
-        console.log(`💾 To: ${localUriAr}`);
         
         const downloadResultAr = await FileSystem.downloadAsync(imageUrlAr, localUriAr);
         
@@ -633,10 +586,8 @@ const downloadDiagramImage = async (diagram) => {
           const mimeType = mimeTypes[extension] || 'image/jpeg';
           
           result.localPathAr = `data:${mimeType};base64,${base64Ar}`;
-          console.log(`✅ AR diagram downloaded and converted to base64`);
         }
       } catch (error) {
-        console.error(`❌ Error downloading AR diagram:`, error);
         result.localPathAr = null;
       }
     }
@@ -694,10 +645,8 @@ export const clearLocalDiagrams = async () => {
     const dirInfo = await FileSystem.getInfoAsync(diagramsDir);
     if (dirInfo.exists) {
       await FileSystem.deleteAsync(diagramsDir, { idempotent: true });
-      console.log('🗑️ Deleted diagrams directory');
     }
     
-    console.log('✅ Local diagrams cleared');
     return { success: true };
   } catch (error) {
     console.error('Error clearing local diagrams:', error);
@@ -720,10 +669,8 @@ export const updateDiagrams = async () => {
     const needsUpdate = Object.keys(localDiagrams).length !== latestDiagrams.length;
     
     if (needsUpdate) {
-      console.log('🔄 Diagrams update needed, downloading...');
       return await downloadAllDiagrams();
     } else {
-      console.log('✅ Diagrams are up to date');
       return { success: true, message: 'Diagrams are up to date' };
     }
   } catch (error) {

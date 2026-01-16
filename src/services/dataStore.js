@@ -102,7 +102,6 @@ class DataStore {
 
   // Force reload data from AsyncStorage (after content update)
   async reloadFromCache() {
-    console.log('🔄 Reloading data from AsyncStorage...');
     this.loading = true;
     this.notifyListeners();
     
@@ -117,7 +116,6 @@ class DataStore {
         let subcategoriesObj = {};
         if (Array.isArray(data.subcategories)) {
           // Convert flat array to hierarchical grouped object by categoryId
-          console.log('📝 Converting subcategories array to hierarchical object...');
           
           // First pass: separate level 1 and level 2 items
           const level1Items = data.subcategories.filter(sub => sub.level === 1 || !sub.level);
@@ -151,15 +149,6 @@ class DataStore {
           subcategoriesObj = data.subcategories;
         }
         
-        console.log('📦 Loaded fresh data:', {
-          categories: data.categories?.length || 0,
-          subcategories: Object.keys(subcategoriesObj).length,
-          totalSubcategories: Array.isArray(data.subcategories) ? data.subcategories.length : Object.values(subcategoriesObj).flat().length,
-          glossary: data.glossary?.length || 0,
-          diagrams: data.diagrams?.length || 0,
-          templates: data.templates?.length || 0
-        });
-        
         this.categories = data.categories || [];
         this.subcategories = subcategoriesObj;
         this.glossaryTerms = data.glossary || [];
@@ -173,7 +162,6 @@ class DataStore {
         this.loading = false;
         this.notifyListeners();
         
-        console.log('✅ Data reloaded successfully');
         return true;
       } else {
         console.warn('⚠️ No content data found in AsyncStorage');
@@ -201,7 +189,6 @@ class DataStore {
       const hasCache = await this.loadCachedData();
       
       if (hasCache) {
-        console.log('✅ Loaded cached data - using offline mode');
         this.loading = false;
         this.notifyListeners();
         // Don't set up subscriptions - use only cached data
@@ -209,7 +196,6 @@ class DataStore {
       }
 
       // No cache - this shouldn't happen if initialized properly, but load from Firebase
-      console.log('⚠️ No cache found - loading from Firebase');
       await this.loadInitialData();
 
     } catch (error) {
@@ -262,7 +248,6 @@ class DataStore {
 
   // Refresh data from Firebase and update cache
   async refresh() {
-    console.log('🔄 Refreshing data from Firebase...');
     this.loading = true;
     this.error = null;
     this.notifyListeners();
@@ -273,8 +258,6 @@ class DataStore {
 
       // Reload all data
       await this.loadInitialData();
-      
-      console.log('✅ Data refresh complete');
     } catch (error) {
       console.error('Error refreshing data:', error);
       this.error = error.message;
@@ -338,13 +321,6 @@ class DataStore {
     const searchLower = searchTerm.toLowerCase().trim();
     const isArabic = language === 'ar';
 
-    console.log('🔍 SEARCH DEBUG:', {
-      searchTerm: searchLower,
-      language,
-      isArabic,
-      totalSubcategories: Object.values(this.subcategories).flat().length
-    });
-
     // Enhanced search function that checks multiple fields
     const searchInText = (text, searchTerm) => {
       if (!text || !searchTerm) return false;
@@ -355,27 +331,6 @@ class DataStore {
     const scoreItem = (item, searchTerm, type) => {
       let score = 0;
       const term = searchTerm.toLowerCase();
-      
-      // Debug: Log first few items to see structure (both with and without content)
-      if (type === 'subcategory' && !scoreItem.loggedCount) {
-        scoreItem.loggedCount = 0;
-      }
-      
-      if (type === 'subcategory' && scoreItem.loggedCount < 3) {
-        const hasContent = !!(item.contentEn || item.contentAr);
-        console.log(`📄 Sample subcategory ${scoreItem.loggedCount + 1} (${hasContent ? 'WITH' : 'NO'} content):`, {
-          id: item.id,
-          level: item.level,
-          hasContentEn: !!item.contentEn,
-          hasContentAr: !!item.contentAr,
-          contentEnLength: item.contentEn?.length || 0,
-          contentArLength: item.contentAr?.length || 0,
-          titleEn: item.titleEn?.substring(0, 40),
-          titleAr: item.titleAr?.substring(0, 40),
-          hasSubSubCategories: !!(item.subSubCategories?.length)
-        });
-        scoreItem.loggedCount++;
-      }
       
       // Language-specific title matches get highest score
       if (isArabic) {
@@ -409,51 +364,19 @@ class DataStore {
       // Language-specific content matches get high score
       // This searches the ACTUAL ARTICLE CONTENT (not just titles)
       if (isArabic) {
-        const contentArMatch = item.contentAr && searchInText(item.contentAr, term);
-        if (contentArMatch) {
-          console.log('✅ FOUND IN contentAr:', {
-            title: item.titleAr?.substring(0, 50),
-            level: item.level,
-            snippet: item.contentAr.substring(0, 100)
-          });
-          score += 8;
-        }
+        if (item.contentAr && searchInText(item.contentAr, term)) score += 8;
         if (item.definitionAr && searchInText(item.definitionAr, term)) score += 8;
         if (item.definitionArabic && searchInText(item.definitionArabic, term)) score += 8;
         // Fallback to English
-        const contentEnMatch = item.contentEn && searchInText(item.contentEn, term);
-        if (contentEnMatch) {
-          console.log('✅ FOUND IN contentEn (fallback):', {
-            title: item.titleEn?.substring(0, 50),
-            level: item.level,
-            snippet: item.contentEn.substring(0, 100)
-          });
-          score += 3;
-        }
+        if (item.contentEn && searchInText(item.contentEn, term)) score += 3;
         if (item.definition && searchInText(item.definition, term)) score += 3;
         if (item.definitionEn && searchInText(item.definitionEn, term)) score += 3;
       } else {
-        const contentEnMatch = item.contentEn && searchInText(item.contentEn, term);
-        if (contentEnMatch) {
-          console.log('✅ FOUND IN contentEn:', {
-            title: item.titleEn?.substring(0, 50),
-            level: item.level,
-            snippet: item.contentEn.substring(0, 100)
-          });
-          score += 8;
-        }
+        if (item.contentEn && searchInText(item.contentEn, term)) score += 8;
         if (item.definition && searchInText(item.definition, term)) score += 8;
         if (item.definitionEn && searchInText(item.definitionEn, term)) score += 8;
         // Fallback to Arabic
-        const contentArMatch = item.contentAr && searchInText(item.contentAr, term);
-        if (contentArMatch) {
-          console.log('✅ FOUND IN contentAr (fallback):', {
-            title: item.titleAr?.substring(0, 50),
-            level: item.level,
-            snippet: item.contentAr.substring(0, 100)
-          });
-          score += 3;
-        }
+        if (item.contentAr && searchInText(item.contentAr, term)) score += 3;
         if (item.definitionAr && searchInText(item.definitionAr, term)) score += 3;
         if (item.definitionArabic && searchInText(item.definitionArabic, term)) score += 3;
       }
@@ -498,12 +421,6 @@ class DataStore {
         });
       });
       
-      console.log('📚 Flattened subcategories for search:', {
-        total: allItems.length,
-        withContent: allItems.filter(item => item.contentEn || item.contentAr).length,
-        withoutContent: allItems.filter(item => !item.contentEn && !item.contentAr).length
-      });
-      
       return allItems;
     };
 
@@ -514,20 +431,6 @@ class DataStore {
       diagrams: filterAndScore(this.diagrams, 'diagram'),
       templates: filterAndScore(this.templates, 'template')
     };
-
-    console.log('🎯 SEARCH RESULTS:', {
-      searchTerm: searchLower,
-      language,
-      found: {
-        categories: results.categories.length,
-        subcategories: results.subcategories.length,
-        glossary: results.glossary.length,
-        diagrams: results.diagrams.length,
-        templates: results.templates.length,
-        total: results.categories.length + results.subcategories.length + 
-               results.glossary.length + results.diagrams.length + results.templates.length
-      }
-    });
 
     return results;
   }
@@ -662,9 +565,6 @@ class DataStore {
       if (!exists) {
         bookmarks.push(bookmark);
         await AsyncStorage.setItem('bookmarks', JSON.stringify(bookmarks));
-        console.log('✅ Bookmark added:', bookmark.title);
-      } else {
-        console.log('ℹ️ Item already bookmarked:', bookmark.title);
       }
       
       // Update state and notify listeners immediately

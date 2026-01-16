@@ -45,7 +45,6 @@ const TemplatesScreen = ({navigation}) => {
       
       if (contentStatus === 'downloaded') {
         // Main content has been downloaded, load templates from cache
-        console.log('✓ Templates found in main content cache');
         await loadTemplatesFromCache();
         setLoading(false);
         return;

@@ -56,16 +56,6 @@ const SearchModal = ({ visible, onClose }) => {
       // Check if item has content
       const hasContent = !!(item.contentEn || item.contentAr || item.hasContent);
       
-      console.log('🔘 Search result pressed:', {
-        type,
-        id: item.id,
-        level: item.level,
-        hasContent,
-        parentSubcategoryId: item.parentSubcategoryId,
-        titleEn: item.titleEn?.substring(0, 50),
-        titleAr: item.titleAr?.substring(0, 50)
-      });
-      
       if (hasContent) {
         // Clean up the item object - remove nested arrays to avoid navigation issues
         const cleanItem = {
@@ -94,15 +84,6 @@ const SearchModal = ({ visible, onClose }) => {
           title: i18n.language === 'ar' ? (item.titleAr || item.titleEn) : (item.titleEn || item.titleAr)
         };
         
-        console.log('📍 Navigating to Article with params:', {
-          subcategoryId: navParams.subcategory.id,
-          categoryId: navParams.category.id,
-          title: navParams.title,
-          level: navParams.subcategory.level,
-          hasContentEn: !!navParams.subcategory.contentEn,
-          hasContentAr: !!navParams.subcategory.contentAr
-        });
-        
         // Navigate to Library tab first, which mounts the LibraryStack
         navigation.navigate('Library');
         
@@ -116,7 +97,6 @@ const SearchModal = ({ visible, onClose }) => {
         }, 50);
       } else {
         // No content - just a header/category - go to Library
-        console.log('📚 No content found - navigating to Library instead');
         navigation.navigate('Library');
       }
     } else if (type === 'category') {

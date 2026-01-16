@@ -132,8 +132,6 @@ We are also grateful to the volunteers and interns who have over the years assis
     } else if (url.startsWith('#!')) {
       const screen = url.replace('#!', '');
       Alert.alert('Navigation', `Navigate to ${screen}`);
-    } else {
-      console.log('Unhandled link:', url);
     }
   };
 

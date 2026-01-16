@@ -199,19 +199,15 @@ const CategoryTemplatesScreen = ({ route, navigation }) => {
 
   const openTemplateFile = async (template) => {
     try {
-      console.log(`🎯 Opening template: ${getTemplateTitle(template)}`);
-      
       // Check if template has local path info
       // If not, try to get it from the downloaded templates storage
       let templateWithLocalPath = template;
       
       if (!template.localPathEn && !template.localPathAr && !template.localPath) {
-        console.log('📦 Template missing local path info, checking downloaded templates...');
         const downloadedTemplates = await getLocalTemplates();
         const downloaded = downloadedTemplates[template.id];
         
         if (downloaded && (downloaded.localPathEn || downloaded.localPathAr || downloaded.localPath) && downloaded.hasFile) {
-          console.log('✅ Found template in downloaded storage');
           templateWithLocalPath = {
             ...template,
             localPathEn: downloaded.localPathEn,
@@ -225,8 +221,6 @@ const CategoryTemplatesScreen = ({ route, navigation }) => {
       }
       
       await openLocalTemplate(templateWithLocalPath, i18n.language);
-      
-      console.log('✅ Template opened successfully');
     } catch (error) {
       console.error('❌ Error opening template:', error);
       

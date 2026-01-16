@@ -43,7 +43,6 @@ if (__DEV__) {
 export const getDiagramImageUrl = async (imageFilePath) => {
   try {
     if (!imageFilePath) {
-      console.warn('⚠️ No image file path provided for diagram');
       return null;
     }
 
@@ -53,17 +52,8 @@ export const getDiagramImageUrl = async (imageFilePath) => {
     const { getDownloadURL } = await import('firebase/storage');
     const url = await getDownloadURL(fileRef);
     
-    console.log('✅ Generated diagram image URL:', imageFilePath);
     return url;
   } catch (error) {
-    // Check for permission errors and provide helpful guidance
-    if (error.code === 'storage/unauthorized') {
-      console.error('❌ Permission Error: Firebase Storage rules do not allow read access');
-      console.error('📋 Fix: Go to Firebase Console → Storage → Rules and allow public read access');
-      console.error('🔗 See FIREBASE_STORAGE_RULES_FIX.md for step-by-step instructions');
-    } else {
-      console.error('❌ Error generating diagram image URL:', error);
-    }
     return null;
   }
 };
@@ -82,13 +72,11 @@ export const getDiagramImageUrlFallback = async (imageFilePath, fallbackUrl) => 
     
     // If new system fails (e.g., permission error), fall back to old URL
     if (fallbackUrl) {
-      console.warn('⚠️ Using fallback URL due to Firebase Storage permission issue');
       return fallbackUrl;
     }
     
     return null;
   } catch (error) {
-    console.error('❌ Error in fallback URL generator:', error);
     return fallbackUrl || null;
   }
 };
@@ -101,7 +89,6 @@ export const getDiagramImageUrlFallback = async (imageFilePath, fallbackUrl) => 
 export const getTemplateDocumentUrl = async (pdfFilePath) => {
   try {
     if (!pdfFilePath) {
-      console.warn('⚠️ No PDF file path provided for template');
       return null;
     }
 
@@ -111,17 +98,8 @@ export const getTemplateDocumentUrl = async (pdfFilePath) => {
     const { getDownloadURL } = await import('firebase/storage');
     const url = await getDownloadURL(fileRef);
     
-    console.log('✅ Generated template PDF URL:', pdfFilePath);
     return url;
   } catch (error) {
-    // Check for permission errors and provide helpful guidance
-    if (error.code === 'storage/unauthorized') {
-      console.error('❌ Permission Error: Firebase Storage rules do not allow read access');
-      console.error('📋 Fix: Go to Firebase Console → Storage → Rules and allow public read access');
-      console.error('🔗 See FIREBASE_STORAGE_RULES_FIX.md for step-by-step instructions');
-    } else {
-      console.error('❌ Error generating template PDF URL:', error);
-    }
     return null;
   }
 };
@@ -138,15 +116,13 @@ export const getTemplateDocumentUrlFallback = async (pdfFilePath, fallbackUrl) =
       return newUrl;
     }
     
-    // If new system fails (e.g., permission error), fall back to old URL
+    // If new system fails, fall back to old URL
     if (fallbackUrl) {
-      console.warn('⚠️ Using fallback URL due to Firebase Storage permission issue');
       return fallbackUrl;
     }
     
     return null;
   } catch (error) {
-    console.error('❌ Error in fallback URL generator:', error);
     return fallbackUrl || null;
   }
 };

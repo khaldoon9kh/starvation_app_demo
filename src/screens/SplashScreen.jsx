@@ -28,11 +28,9 @@ const SplashScreen = ({ navigation }) => {
       
       if (contentStatus === 'downloaded') {
         // Content exists - go straight to main app
-        console.log('Content found - navigating to main app');
         navigation.replace('MainTabs');
       } else {
         // No content - show landing page for download prompt
-        console.log('No content found - navigating to landing page');
         navigation.replace('Landing');
       }
     } catch (error) {

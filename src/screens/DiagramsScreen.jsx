@@ -39,7 +39,6 @@ const DiagramsScreen = ({ navigation }) => {
       setError(null);
       const localDiagrams = await getLocalDiagrams();
       const diagramsArray = Object.values(localDiagrams);
-      console.log(`📥 Loaded ${diagramsArray.length} local diagrams`);
       setDiagrams(diagramsArray);
     } catch (err) {
       console.error('Error loading local diagrams:', err);

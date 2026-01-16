@@ -127,9 +127,6 @@ More information and additional resources are available at: [https://starvationa
       // Handle internal navigation - for HomeScreen, we don't have navigation prop, so alert or ignore
       const screen = url.replace('#!', '');
       Alert.alert('Navigation', `Navigate to ${screen}`);
-    } else {
-      // Fallback
-      console.log('Unhandled link:', url);
     }
   };
 

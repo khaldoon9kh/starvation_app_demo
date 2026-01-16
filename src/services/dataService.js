@@ -196,11 +196,6 @@ export const getGlossaryTerms = async () => {
     return glossaryData;
   } catch (error) {
     console.error('❌ Error fetching glossary terms:', error);
-    console.log('📝 Error details:', {
-      code: error.code,
-      message: error.message,
-      stack: error.stack
-    });
     throw error;
   }
 };
@@ -376,7 +371,7 @@ export const getTemplatesByCategory = async (category, language = 'en') => {
         return templates;
       }
     } catch (error) {
-      console.log(`${categoryField} field not found, trying legacy category field`);
+      // Try legacy category field
     }
     
     // Fallback to legacy category field
