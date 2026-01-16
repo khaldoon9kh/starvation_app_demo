@@ -29,9 +29,6 @@
     },
     "android": {
       "package": "com.grc.starvation.toolkit",
-      "compileSdkVersion": 34,
-      "targetSdkVersion": 34,
-      "buildToolsVersion": "34.0.0",
       "versionCode": 1
     },
     "newArchEnabled": true,
@@ -40,7 +37,7 @@
         "projectId": "29211090-5cd9-4311-997d-0197004a6bf7"
       }
     },
-    "owner": "your-expo-username",
+    "owner": "khaldoon9kh9",
     "runtimeVersion": {
       "policy": "appVersion"
     }
