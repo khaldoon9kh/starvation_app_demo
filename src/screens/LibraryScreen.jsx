@@ -341,6 +341,44 @@ const LibraryScreen = ({navigation}) => {
             />
           </TouchableOpacity>
         </View>
+
+        {/* Fixed Glossary Section */}
+        <View style={styles.sectionContainer}>
+          <TouchableOpacity
+            style={[
+              styles.sectionItem,
+              styles.glossarySection,
+              { 
+                flexDirection: isRTL ? 'row-reverse' : 'row',
+                borderLeftColor: isRTL ? 'transparent' : '#4CAF50',
+                borderRightColor: isRTL ? '#4CAF50' : 'transparent',
+                borderLeftWidth: isRTL ? 0 : 4,
+                borderRightWidth: isRTL ? 4 : 0,
+              }
+            ]}
+            onPress={() => navigation.navigate('Glossary')}
+          >
+            <View style={[
+              styles.glossaryTitleContainer,
+              { flexDirection: isRTL ? 'row-reverse' : 'row' }
+            ]}>
+              <Icon 
+                name="menu-book" 
+                size={24} 
+                color="#4CAF50" 
+                style={isRTL ? { marginLeft: 10 } : { marginRight: 10 }}
+              />
+              <Text style={[styles.sectionTitle, isRTL && styles.rtlText]}>
+                {i18n.language === 'ar' ? 'المسرد' : 'Glossary'}
+              </Text>
+            </View>
+            <Icon 
+              name={isRTL ? 'keyboard-arrow-left' : 'keyboard-arrow-right'} 
+              size={24} 
+              color="#4CAF50" 
+            />
+          </TouchableOpacity>
+        </View>
         
         {categories.map(renderCategory)}
         
@@ -537,6 +575,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF8E1',
   },
   diagramsTitleContainer: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  glossarySection: {
+    backgroundColor: '#E8F5E9',
+  },
+  glossaryTitleContainer: {
     flex: 1,
     alignItems: 'center',
   },

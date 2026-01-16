@@ -19,6 +19,7 @@ import TemplatesScreen from './src/screens/TemplatesScreen';
 import CategoryTemplatesScreen from './src/screens/CategoryTemplatesScreen';
 import ArticleScreen from './src/screens/ArticleScreen';
 import DiagramsScreen from './src/screens/DiagramsScreen';
+import GlossaryScreen from './src/screens/GlossaryScreen';
 // Import menu screens
 import AboutScreen from './src/screens/AboutScreen';
 import ContactScreen from './src/screens/ContactScreen';
@@ -100,6 +101,7 @@ const LibraryStack = () => (
     <Stack.Screen name="LibraryMain" component={LibraryScreen} />
     <Stack.Screen name="Article" component={ArticleScreen} />
     <Stack.Screen name="Diagrams" component={DiagramsScreen} />
+    <Stack.Screen name="Glossary" component={GlossaryScreen} />
   </Stack.Navigator>
 );
 
