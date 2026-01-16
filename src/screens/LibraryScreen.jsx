@@ -117,7 +117,8 @@ const SubcategoriesList = ({ categoryId, isRTL, i18n, navigation, expandedSubcat
                           borderRightColor: isRTL ? 'black' : 'transparent',
                           borderLeftWidth: isRTL ? 0 : 4,
                           borderRightWidth: isRTL ? 4 : 0,
-                          marginLeft: 10,
+                          marginLeft: isRTL ? 0 : 10,
+                          marginRight: isRTL ? 10 : 0,
                         }
                       ]}
                       onPress={() => navigateToSubcategory({ id: categoryId }, subSub)}>
@@ -270,6 +271,8 @@ const LibraryScreen = ({navigation}) => {
           />
         </TouchableOpacity>
         
+
+        
         {expandedSections[category.id] && (
           <SubcategoriesList 
             categoryId={category.id}
@@ -295,7 +298,11 @@ const LibraryScreen = ({navigation}) => {
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
       }>
       <View style={styles.content}>
-        <Text style={[styles.title, isRTL && styles.rtlTitle]}>THIS IS YOUR STARVATION LIBRARY</Text>
+        <View style={styles.headerTextContainer}>
+          <Text style={[styles.headerText, isRTL && styles.rtlText]}>
+            {i18n.language === 'ar' ? 'هذه مكتبة التجويع الخاصة بك' : 'This is your Starvation Library'}
+          </Text>
+        </View>
         
         {categories.map(renderCategory)}
         
@@ -366,6 +373,7 @@ const styles = StyleSheet.create({
     shadowOffset: {width: 0, height: 1},
     shadowOpacity: 0.3,
     shadowRadius: 1,
+    marginBottom: 5,
   },
   subItemTitle: {
     fontSize: 14,
@@ -424,7 +432,7 @@ const styles = StyleSheet.create({
     shadowRadius: 1,
     backgroundColor: '#fff',
     borderBottomLeftRadius: 6,
-    borderBottomRightRadius: 6,
+    borderBottomRightRadius: 6
 
   },
   subSubItem: {
@@ -436,6 +444,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 2,
     marginLeft: 10,
+    marginBottom: 5,
+    elevation: 2,
+    shadowOffset: {width: 0, height: 1},
+    shadowOpacity: 0.2,
+    shadowRadius: 1,
   },
   subSubItemText: {
     fontSize: 13,
@@ -471,6 +484,16 @@ const styles = StyleSheet.create({
   },
   rtlText: {
     textAlign: 'right',
+  },
+  headerTextContainer: {
+    marginBottom: 20,
+    paddingHorizontal: 10,
+  },
+  headerText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#4CAF50',
+    textAlign: 'center',
   },
 });
 

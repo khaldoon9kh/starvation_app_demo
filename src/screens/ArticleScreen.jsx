@@ -824,6 +824,7 @@ const rtlMarkdownStyles = {
   heading1: {
     textAlign: 'right',
     writingDirection: 'rtl',
+
   },
   heading2: {
     textAlign: 'right',
@@ -836,16 +837,19 @@ const rtlMarkdownStyles = {
   heading4: {
     textAlign: 'right',
     writingDirection: 'rtl',
+    color: "red",
+    backgroundColor: "yellow",
+    marginRight: 0,
   },
   list_item: {
     flexDirection: 'row-reverse',
   },
   bullet_list_icon: {
-    marginLeft: 8,
+    marginLeft: 2,
     marginRight: 0,
   },
   ordered_list_icon: {
-    marginLeft: 8,
+    marginLeft: 2,
     marginRight: 0,
   },
   bullet_list_content: {
@@ -853,6 +857,8 @@ const rtlMarkdownStyles = {
   },
   ordered_list_content: {
     textAlign: 'right',
+    color: "red",
+    color:"blue"
   },
   blockquote: {
     borderLeftWidth: 0,
