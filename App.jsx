@@ -167,7 +167,7 @@ const TabNavigator = () => {
 // Main stack navigator that includes both tab navigator and menu screens
 const MainStack = () => (
   <Stack.Navigator screenOptions={{headerShown: false}}>
-    <Stack.Screen name="MainTabs" component={TabNavigator} />
+    <Stack.Screen name="HomeTabs" component={TabNavigator} />
     <Stack.Screen name="About" component={AboutScreen} />
     <Stack.Screen name="Contact" component={ContactScreen} />
     <Stack.Screen name="Copyright" component={CopyrightScreen} />

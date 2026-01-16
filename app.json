@@ -22,6 +22,7 @@
       "targetSdkVersion": 34,
       "buildToolsVersion": "34.0.0"
     },
+    "newArchEnabled": true,
     "extra": {
       "eas": {
         "projectId": "29211090-5cd9-4311-997d-0197004a6bf7"
