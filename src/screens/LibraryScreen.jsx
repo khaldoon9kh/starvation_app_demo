@@ -303,6 +303,44 @@ const LibraryScreen = ({navigation}) => {
             {i18n.language === 'ar' ? 'هذه مكتبة التجويع الخاصة بك' : 'This is your Starvation Library'}
           </Text>
         </View>
+
+        {/* Fixed Diagrams Section */}
+        <View style={styles.sectionContainer}>
+          <TouchableOpacity
+            style={[
+              styles.sectionItem,
+              styles.diagramsSection,
+              { 
+                flexDirection: isRTL ? 'row-reverse' : 'row',
+                borderLeftColor: isRTL ? 'transparent' : '#FF9800',
+                borderRightColor: isRTL ? '#FF9800' : 'transparent',
+                borderLeftWidth: isRTL ? 0 : 4,
+                borderRightWidth: isRTL ? 4 : 0,
+              }
+            ]}
+            onPress={() => navigation.navigate('Diagrams')}
+          >
+            <View style={[
+              styles.diagramsTitleContainer,
+              { flexDirection: isRTL ? 'row-reverse' : 'row' }
+            ]}>
+              <Icon 
+                name="insert-photo" 
+                size={24} 
+                color="#FF9800" 
+                style={isRTL ? { marginLeft: 10 } : { marginRight: 10 }}
+              />
+              <Text style={[styles.sectionTitle, isRTL && styles.rtlText]}>
+                {i18n.language === 'ar' ? 'الرسوم التوضيحية' : 'Diagrams'}
+              </Text>
+            </View>
+            <Icon 
+              name={isRTL ? 'keyboard-arrow-left' : 'keyboard-arrow-right'} 
+              size={24} 
+              color="#FF9800" 
+            />
+          </TouchableOpacity>
+        </View>
         
         {categories.map(renderCategory)}
         
@@ -494,6 +532,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#4CAF50',
     textAlign: 'center',
+  },
+  diagramsSection: {
+    backgroundColor: '#FFF8E1',
+  },
+  diagramsTitleContainer: {
+    flex: 1,
+    alignItems: 'center',
   },
 });
 

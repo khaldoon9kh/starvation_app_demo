@@ -39,7 +39,7 @@
   "try_different_keywords": "جرب كلمات مفتاحية مختلفة أو تحقق من الإملاء",
   "categories": "الفئات",
   "glossary": "المسرد",
-  "diagrams": "الرسوم البيانية",
+  "diagramsLabel": "الرسوم البيانية",
   "remove_bookmark": "إزالة العلامة المرجعية",
   "remove_bookmark_confirm": "هل أنت متأكد من أنك تريد إزالة هذه العلامة المرجعية؟",
   "cancel": "إلغاء",
@@ -146,6 +146,21 @@
     "retry": "إعادة المحاولة",
     "cancel": "إلغاء",
     "ok": "موافق"
+  },
+  "diagrams": {
+    "noDiagrams": "لا توجد رسوم توضيحية متاحة",
+    "noImage": "لا توجد صورة متاحة",
+    "download": "تحميل",
+    "share": "مشاركة",
+    "success": "نجح",
+    "error": "خطأ",
+    "permissionDenied": "تم رفض الإذن",
+    "permissionMessage": "نحتاج إذن لحفظ الصور في معرض الصور الخاص بك",
+    "noImageUrl": "رابط الصورة غير متاح",
+    "savedToGallery": "تم حفظ الرسم التوضيحي في معرض الصور",
+    "downloadFailed": "فشل تحميل الرسم التوضيحي. يرجى المحاولة مرة أخرى.",
+    "sharingNotAvailable": "المشاركة غير متاحة على هذا الجهاز",
+    "shareFailed": "فشلت مشاركة الرسم التوضيحي"
   },
   "homeScreen": {
     "overview": "نظرة عامة",

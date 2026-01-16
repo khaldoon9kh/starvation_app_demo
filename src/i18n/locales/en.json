@@ -40,7 +40,7 @@
   "try_different_keywords": "Try different keywords or check spelling",
   "categories": "Categories",
   "glossary": "Glossary",
-  "diagrams": "Diagrams",
+  "diagramsLabel": "Diagrams",
   "remove_bookmark": "Remove Bookmark",
   "remove_bookmark_confirm": "Are you sure you want to remove this bookmark?",
   "cancel": "Cancel",
@@ -147,6 +147,21 @@
     "retry": "Retry",
     "cancel": "Cancel",
     "ok": "OK"
+  },
+  "diagrams": {
+    "noDiagrams": "No diagrams available",
+    "noImage": "No image available",
+    "download": "Download",
+    "share": "Share",
+    "success": "Success",
+    "error": "Error",
+    "permissionDenied": "Permission Denied",
+    "permissionMessage": "We need permission to save images to your gallery",
+    "noImageUrl": "Image URL not available",
+    "savedToGallery": "Diagram saved to your gallery",
+    "downloadFailed": "Failed to download diagram. Please try again.",
+    "sharingNotAvailable": "Sharing is not available on this device",
+    "shareFailed": "Failed to share diagram"
   },
   "homeScreen": {
     "overview": "OVERVIEW",

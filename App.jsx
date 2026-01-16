@@ -18,6 +18,7 @@ import SavedScreen from './src/screens/SavedScreen';
 import TemplatesScreen from './src/screens/TemplatesScreen';
 import CategoryTemplatesScreen from './src/screens/CategoryTemplatesScreen';
 import ArticleScreen from './src/screens/ArticleScreen';
+import DiagramsScreen from './src/screens/DiagramsScreen';
 // Import menu screens
 import AboutScreen from './src/screens/AboutScreen';
 import ContactScreen from './src/screens/ContactScreen';
@@ -93,11 +94,16 @@ const AppHeader = ({title, showSearch = true, showMenu = true, onMenuPress, onSe
   );
 };
 
-// Stack navigator for Library (includes article details)
+// Stack navigator for Library (includes article details and diagrams)
 const LibraryStack = () => (
   <Stack.Navigator screenOptions={{headerShown: false}}>
     <Stack.Screen name="LibraryMain" component={LibraryScreen} />
     <Stack.Screen name="Article" component={ArticleScreen} />
+    <Stack.Screen 
+      name="Diagrams" 
+      component={DiagramsScreen}
+      options={{headerShown: true}}
+    />
   </Stack.Navigator>
 );
 

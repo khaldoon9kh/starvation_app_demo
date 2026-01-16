@@ -332,7 +332,7 @@ const SearchModal = ({ visible, onClose }) => {
       case 'category': return t('categories') || 'Categories';
       case 'subcategory': return t('articles') || 'Articles';
       case 'glossary': return t('glossary') || 'Glossary';
-      case 'diagram': return t('diagrams') || 'Diagrams';
+      case 'diagram': return t('diagramsLabel') || 'Diagrams';
       case 'template': return t('templates') || 'Templates';
       default: return type;
     }
