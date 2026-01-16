@@ -8,6 +8,8 @@ import {
   Switch,
   Alert,
   ActivityIndicator,
+  Modal,
+  BackHandler,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useTranslation } from 'react-i18next';
@@ -25,8 +27,32 @@ const SettingsScreen = ({ navigation, route }) => {
   const [downloading, setDownloading] = useState(false);
   const [contentStatus, setContentStatus] = useState('none'); // 'none', 'downloading', 'downloaded'
   const [downloadProgress, setDownloadProgress] = useState('');
+  const [showProgressModal, setShowProgressModal] = useState(false);
+  const [downloadStats, setDownloadStats] = useState({
+    currentStep: '',
+    totalSteps: 5,
+    currentStepNumber: 0,
+    categoriesCount: 0,
+    subcategoriesCount: 0,
+    templatesCount: 0,
+    diagramsCount: 0,
+    glossaryCount: 0,
+  });
   
   const showDownloadPrompt = route?.params?.showDownloadPrompt;
+
+  // Prevent back button during download
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (showProgressModal) {
+        // Prevent going back during download
+        return true;
+      }
+      return false;
+    });
+
+    return () => backHandler.remove();
+  }, [showProgressModal]);
 
   useEffect(() => {
     checkContentStatus();
@@ -62,22 +88,38 @@ const SettingsScreen = ({ navigation, route }) => {
   const handleDownloadContent = async () => {
     try {
       setDownloading(true);
+      setShowProgressModal(true);
+      setDownloadStats(prev => ({ ...prev, currentStep: t('settingsScreen.preparingDownload', 'Preparing download...'), currentStepNumber: 1 }));
       setDownloadProgress(t('settingsScreen.preparingDownload', 'Preparing download...'));
       
       // Fetch all content metadata from Firebase
+      setDownloadStats(prev => ({ ...prev, currentStep: t('settingsScreen.fetchingData', 'Fetching latest content...'), currentStepNumber: 2 }));
       setDownloadProgress(t('settingsScreen.fetchingData', 'Fetching latest content...'));
       const contentData = await getAllContentForCache();
       
+      // Update stats with content counts
+      setDownloadStats(prev => ({
+        ...prev,
+        categoriesCount: contentData.categories?.length || 0,
+        subcategoriesCount: contentData.subcategories?.length || 0,
+        templatesCount: contentData.templates?.length || 0,
+        diagramsCount: contentData.diagrams?.length || 0,
+        glossaryCount: contentData.glossary?.length || 0,
+      }));
+      
       // Store content metadata
+      setDownloadStats(prev => ({ ...prev, currentStep: t('settingsScreen.savingData', 'Saving content locally...'), currentStepNumber: 3 }));
       setDownloadProgress(t('settingsScreen.savingData', 'Saving content locally...'));
       await AsyncStorage.setItem(CONTENT_DATA_KEY, JSON.stringify(contentData));
       
       // Download template files to device storage
+      setDownloadStats(prev => ({ ...prev, currentStep: t('settingsScreen.downloadingTemplates', 'Downloading template files...'), currentStepNumber: 4 }));
       setDownloadProgress(t('settingsScreen.downloadingTemplates', 'Downloading template files...'));
       const { downloadAllTemplates, downloadAllDiagrams } = await import('../services/templateManager');
       await downloadAllTemplates();
       
       // Download diagram images to device storage
+      setDownloadStats(prev => ({ ...prev, currentStep: t('settingsScreen.downloadingDiagrams', 'Downloading diagram images...'), currentStepNumber: 5 }));
       setDownloadProgress(t('settingsScreen.downloadingDiagrams', 'Downloading diagram images...'));
       await downloadAllDiagrams();
       
@@ -87,9 +129,12 @@ const SettingsScreen = ({ navigation, route }) => {
       setDownloadProgress('');
       
       // Reload dataStore from AsyncStorage to refresh all screens
+      setDownloadStats(prev => ({ ...prev, currentStep: t('settingsScreen.reloadingApp', 'Reloading app...') }));
       setDownloadProgress(t('settingsScreen.reloadingApp', 'Reloading app...'));
       const dataStore = await import('../services/dataStore');
       await dataStore.default.reloadFromCache();
+      
+      setShowProgressModal(false);
       
       // Navigate to splash screen to force complete app refresh
       navigation.reset({
@@ -114,6 +159,7 @@ const SettingsScreen = ({ navigation, route }) => {
       
     } catch (error) {
       console.error('Error downloading content:', error);
+      setShowProgressModal(false);
       Alert.alert(
         t('common.error', 'Error'),
         t('settingsScreen.downloadError', 'Failed to download content. Please check your internet connection and try again.'),
@@ -127,22 +173,38 @@ const SettingsScreen = ({ navigation, route }) => {
   const handleRefreshContent = async () => {
     try {
       setDownloading(true);
+      setShowProgressModal(true);
+      setDownloadStats(prev => ({ ...prev, currentStep: t('settingsScreen.preparingDownload', 'Preparing download...'), currentStepNumber: 1 }));
       setDownloadProgress(t('settingsScreen.preparingDownload', 'Preparing download...'));
       
       // Fetch all content metadata from Firebase
+      setDownloadStats(prev => ({ ...prev, currentStep: t('settingsScreen.fetchingData', 'Fetching latest content...'), currentStepNumber: 2 }));
       setDownloadProgress(t('settingsScreen.fetchingData', 'Fetching latest content...'));
       const contentData = await getAllContentForCache();
       
+      // Update stats with content counts
+      setDownloadStats(prev => ({
+        ...prev,
+        categoriesCount: contentData.categories?.length || 0,
+        subcategoriesCount: contentData.subcategories?.length || 0,
+        templatesCount: contentData.templates?.length || 0,
+        diagramsCount: contentData.diagrams?.length || 0,
+        glossaryCount: contentData.glossary?.length || 0,
+      }));
+      
       // Store content metadata
+      setDownloadStats(prev => ({ ...prev, currentStep: t('settingsScreen.savingData', 'Saving content locally...'), currentStepNumber: 3 }));
       setDownloadProgress(t('settingsScreen.savingData', 'Saving content locally...'));
       await AsyncStorage.setItem(CONTENT_DATA_KEY, JSON.stringify(contentData));
       
       // Download/update template files to device storage
+      setDownloadStats(prev => ({ ...prev, currentStep: t('settingsScreen.downloadingTemplates', 'Downloading template files...'), currentStepNumber: 4 }));
       setDownloadProgress(t('settingsScreen.downloadingTemplates', 'Downloading template files...'));
       const { downloadAllTemplates, downloadAllDiagrams } = await import('../services/templateManager');
       await downloadAllTemplates();
       
       // Download/update diagram images to device storage
+      setDownloadStats(prev => ({ ...prev, currentStep: t('settingsScreen.downloadingDiagrams', 'Downloading diagram images...'), currentStepNumber: 5 }));
       setDownloadProgress(t('settingsScreen.downloadingDiagrams', 'Downloading diagram images...'));
       await downloadAllDiagrams();
       
@@ -153,9 +215,12 @@ const SettingsScreen = ({ navigation, route }) => {
       setDownloadProgress('');
       
       // Reload dataStore from AsyncStorage to refresh all screens
+      setDownloadStats(prev => ({ ...prev, currentStep: t('settingsScreen.reloadingApp', 'Reloading app...') }));
       setDownloadProgress(t('settingsScreen.reloadingApp', 'Reloading app...'));
       const dataStore = await import('../services/dataStore');
       await dataStore.default.reloadFromCache();
+      
+      setShowProgressModal(false);
       
       // Navigate to splash/loading screen to force complete app refresh
       navigation.reset({
@@ -179,6 +244,7 @@ const SettingsScreen = ({ navigation, route }) => {
       
     } catch (error) {
       console.error('Error refreshing content:', error);
+      setShowProgressModal(false);
       Alert.alert(
         t('common.error', 'Error'),
         t('settingsScreen.refreshError', 'Failed to update content. Please check your internet connection and try again.'),
@@ -226,8 +292,91 @@ const SettingsScreen = ({ navigation, route }) => {
     </TouchableOpacity>
   );
 
+  // Render progress modal
+  const renderProgressModal = () => (
+    <Modal
+      visible={showProgressModal}
+      transparent={true}
+      animationType="fade"
+      onRequestClose={() => {
+        // Prevent closing modal during download
+      }}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContent}>
+          {/* Header */}
+          <View style={styles.modalHeader}>
+            <Icon name="cloud-download" size={40} color="#4CAF50" />
+            <Text style={styles.modalTitle}>
+              {t('settingsScreen.updatingContent', 'Updating Content')}
+            </Text>
+          </View>
+          
+          {/* Progress indicator */}
+          <View style={styles.progressContainer}>
+            <ActivityIndicator size="large" color="#4CAF50" />
+            <Text style={styles.progressStep}>
+              {t('settingsScreen.step', 'Step')} {downloadStats.currentStepNumber} {t('settingsScreen.of', 'of')} {downloadStats.totalSteps}
+            </Text>
+            <Text style={styles.progressText}>{downloadStats.currentStep}</Text>
+          </View>
+          
+          {/* Download stats */}
+          {downloadStats.categoriesCount > 0 && (
+            <View style={styles.statsContainer}>
+              <Text style={styles.statsTitle}>
+                {t('settingsScreen.contentFound', 'Content Found')}:
+              </Text>
+              <View style={styles.statRow}>
+                <Icon name="folder" size={18} color="#2196F3" />
+                <Text style={styles.statText}>
+                  {downloadStats.categoriesCount} {t('settingsScreen.categories', 'Categories')}
+                </Text>
+              </View>
+              <View style={styles.statRow}>
+                <Icon name="article" size={18} color="#4CAF50" />
+                <Text style={styles.statText}>
+                  {downloadStats.subcategoriesCount} {t('settingsScreen.articles', 'Articles')}
+                </Text>
+              </View>
+              <View style={styles.statRow}>
+                <Icon name="description" size={18} color="#FF9800" />
+                <Text style={styles.statText}>
+                  {downloadStats.templatesCount} {t('settingsScreen.templates', 'Templates')}
+                </Text>
+              </View>
+              <View style={styles.statRow}>
+                <Icon name="image" size={18} color="#9C27B0" />
+                <Text style={styles.statText}>
+                  {downloadStats.diagramsCount} {t('settingsScreen.diagrams', 'Diagrams')}
+                </Text>
+              </View>
+              <View style={styles.statRow}>
+                <Icon name="menu-book" size={18} color="#F44336" />
+                <Text style={styles.statText}>
+                  {downloadStats.glossaryCount} {t('settingsScreen.glossaryTerms', 'Glossary Terms')}
+                </Text>
+              </View>
+            </View>
+          )}
+          
+          {/* Warning message */}
+          <View style={styles.warningContainer}>
+            <Icon name="warning" size={16} color="#FF9800" />
+            <Text style={styles.warningText}>
+              {t('settingsScreen.doNotClose', 'Please do not close the app during update')}
+            </Text>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+
   return (
     <View style={styles.container}>
+      {/* Progress Modal */}
+      {renderProgressModal()}
+      
       {/* Header */}
       <View style={[
         styles.header,
@@ -235,11 +384,17 @@ const SettingsScreen = ({ navigation, route }) => {
       ]}>
         <TouchableOpacity 
           style={styles.backButton}
-          onPress={() => navigation.goBack()}>
+          onPress={() => {
+            if (!showProgressModal) {
+              navigation.goBack();
+            }
+          }}
+          disabled={showProgressModal}
+        >
           <Icon 
             name={isRTL ? "arrow-forward" : "arrow-back"} 
             size={24} 
-            color="#4CAF50" 
+            color={showProgressModal ? "#ccc" : "#4CAF50"} 
           />
         </TouchableOpacity>
         
@@ -512,6 +667,87 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
     marginLeft: 8,
+  },
+  // Progress Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 24,
+    width: '100%',
+    maxWidth: 340,
+    elevation: 10,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+  },
+  modalHeader: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+    marginTop: 12,
+  },
+  progressContainer: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  progressStep: {
+    fontSize: 14,
+    color: '#4CAF50',
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  progressText: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+  },
+  statsContainer: {
+    backgroundColor: '#f8f9fa',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+  },
+  statsTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 12,
+  },
+  statRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  statText: {
+    fontSize: 13,
+    color: '#555',
+  },
+  warningContainer: {
+    backgroundColor: '#fff3cd',
+    borderRadius: 8,
+    padding: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  warningText: {
+    fontSize: 12,
+    color: '#856404',
+    marginLeft: 8,
+    flex: 1,
   },
 });
 
