@@ -15,7 +15,13 @@
       }
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "android": {
+        "buildType": "app-bundle"
+      },
+      "env": {
+        "EX_UPDATES_NATIVE_DEBUG": "0"
+      }
     },
     "apk": {
       "android": {

@@ -40,6 +40,9 @@
     "owner": "khaldoon9kh9",
     "runtimeVersion": {
       "policy": "appVersion"
-    }
+    },
+    "plugins": [
+      "expo-localization"
+    ]
   }
 }
