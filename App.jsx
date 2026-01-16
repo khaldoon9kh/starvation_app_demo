@@ -99,11 +99,7 @@ const LibraryStack = () => (
   <Stack.Navigator screenOptions={{headerShown: false}}>
     <Stack.Screen name="LibraryMain" component={LibraryScreen} />
     <Stack.Screen name="Article" component={ArticleScreen} />
-    <Stack.Screen 
-      name="Diagrams" 
-      component={DiagramsScreen}
-      options={{headerShown: true}}
-    />
+    <Stack.Screen name="Diagrams" component={DiagramsScreen} />
   </Stack.Navigator>
 );
 
@@ -111,11 +107,7 @@ const LibraryStack = () => (
 const TemplatesStack = () => (
   <Stack.Navigator screenOptions={{headerShown: false}}>
     <Stack.Screen name="TemplatesMain" component={TemplatesScreen} />
-    <Stack.Screen 
-      name="CategoryTemplates" 
-      component={CategoryTemplatesScreen}
-      options={{headerShown: true}}
-    />
+    <Stack.Screen name="CategoryTemplates" component={CategoryTemplatesScreen} />
   </Stack.Navigator>
 );
 

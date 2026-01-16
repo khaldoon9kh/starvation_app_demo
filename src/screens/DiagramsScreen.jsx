@@ -219,14 +219,103 @@ const DiagramsScreen = ({ navigation }) => {
     }
   };
 
-  React.useLayoutEffect(() => {
-    navigation.setOptions({
-      title: i18n.language === 'ar' ? 'الرسوم التوضيحية' : 'Diagrams',
-      headerTitleAlign: 'center',
-      headerLeft: () => (
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        {/* Header Bar */}
+        <View style={styles.headerBar}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backButtonHeader}
+          >
+            <Icon 
+              name={isRTL ? "keyboard-arrow-right" : "keyboard-arrow-left"} 
+              size={28} 
+              color="#333" 
+            />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>
+            {i18n.language === 'ar' ? 'الرسوم التوضيحية' : 'Diagrams'}
+          </Text>
+          <View style={styles.headerSpacer} />
+        </View>
+        
+        <View style={styles.centerContainer}>
+          <ActivityIndicator size="large" color="#4CAF50" />
+          <Text style={styles.loadingText}>{t('common.loading', 'Loading...')}</Text>
+        </View>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.container}>
+        {/* Header Bar */}
+        <View style={styles.headerBar}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backButtonHeader}
+          >
+            <Icon 
+              name={isRTL ? "keyboard-arrow-right" : "keyboard-arrow-left"} 
+              size={28} 
+              color="#333" 
+            />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>
+            {i18n.language === 'ar' ? 'الرسوم التوضيحية' : 'Diagrams'}
+          </Text>
+          <View style={styles.headerSpacer} />
+        </View>
+        
+        <View style={styles.centerContainer}>
+          <Icon name="error-outline" size={64} color="#F44336" />
+          <Text style={styles.errorText}>{t('common.error', 'Error')}: {error}</Text>
+          <TouchableOpacity style={styles.retryButton} onPress={loadLocalDiagrams}>
+            <Text style={styles.retryButtonText}>{t('common.retry', 'Retry')}</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
+  if (!diagrams || diagrams.length === 0) {
+    return (
+      <View style={styles.container}>
+        {/* Header Bar */}
+        <View style={styles.headerBar}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backButtonHeader}
+          >
+            <Icon 
+              name={isRTL ? "keyboard-arrow-right" : "keyboard-arrow-left"} 
+              size={28} 
+              color="#333" 
+            />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>
+            {i18n.language === 'ar' ? 'الرسوم التوضيحية' : 'Diagrams'}
+          </Text>
+          <View style={styles.headerSpacer} />
+        </View>
+        
+        <View style={styles.centerContainer}>
+          <Icon name="insert-photo" size={64} color="#ccc" />
+          <Text style={styles.emptyText}>{t('diagrams.noDiagrams', 'No diagrams available')}</Text>
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      {/* Header Bar */}
+      <View style={styles.headerBar}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
-          style={styles.backButton}
+          style={styles.backButtonHeader}
         >
           <Icon 
             name={isRTL ? "keyboard-arrow-right" : "keyboard-arrow-left"} 
@@ -234,42 +323,12 @@ const DiagramsScreen = ({ navigation }) => {
             color="#333" 
           />
         </TouchableOpacity>
-      ),
-    });
-  }, [navigation, isRTL, i18n.language]);
-
-  if (loading) {
-    return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#4CAF50" />
-        <Text style={styles.loadingText}>{t('common.loading', 'Loading...')}</Text>
+        <Text style={styles.headerTitle}>
+          {i18n.language === 'ar' ? 'الرسوم التوضيحية' : 'Diagrams'}
+        </Text>
+        <View style={styles.headerSpacer} />
       </View>
-    );
-  }
-
-  if (error) {
-    return (
-      <View style={styles.centerContainer}>
-        <Icon name="error-outline" size={64} color="#F44336" />
-        <Text style={styles.errorText}>{t('common.error', 'Error')}: {error}</Text>
-        <TouchableOpacity style={styles.retryButton}>
-          <Text style={styles.retryButtonText}>{t('common.retry', 'Retry')}</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
-
-  if (!diagrams || diagrams.length === 0) {
-    return (
-      <View style={styles.centerContainer}>
-        <Icon name="insert-photo" size={64} color="#ccc" />
-        <Text style={styles.emptyText}>{t('diagrams.noDiagrams', 'No diagrams available')}</Text>
-      </View>
-    );
-  }
-
-  return (
-    <View style={styles.container}>
+      
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.contentContainer}>
         {diagrams.map((diagram, index) => {
           const imageUrl = getDiagramImageUrl(diagram);
@@ -384,6 +443,33 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
+  },
+  headerBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#fff',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+    elevation: 2,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  backButtonHeader: {
+    padding: 8,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+    flex: 1,
+    textAlign: 'center',
+  },
+  headerSpacer: {
+    width: 44,
   },
   scrollView: {
     flex: 1,

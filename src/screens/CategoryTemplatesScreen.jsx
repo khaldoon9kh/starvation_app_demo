@@ -238,14 +238,98 @@ const CategoryTemplatesScreen = ({ route, navigation }) => {
     }
   };
 
-  React.useLayoutEffect(() => {
-    navigation.setOptions({
-      title: categoryDisplayName || category,
-      headerTitleAlign: 'center',
-      headerLeft: () => (
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.headerBar}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backButtonHeader}
+          >
+            <Icon 
+              name={isRTL ? "keyboard-arrow-right" : "keyboard-arrow-left"} 
+              size={28} 
+              color="#333" 
+            />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>
+            {categoryDisplayName || category}
+          </Text>
+          <View style={styles.headerSpacer} />
+        </View>
+        
+        <View style={styles.centerContainer}>
+          <ActivityIndicator size="large" color="#4CAF50" />
+          <Text style={styles.loadingText}>{t('common.loading', 'Loading...')}</Text>
+        </View>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.headerBar}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backButtonHeader}
+          >
+            <Icon 
+              name={isRTL ? "keyboard-arrow-right" : "keyboard-arrow-left"} 
+              size={28} 
+              color="#333" 
+            />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>
+            {categoryDisplayName || category}
+          </Text>
+          <View style={styles.headerSpacer} />
+        </View>
+        
+        <View style={styles.centerContainer}>
+          <Text style={styles.errorText}>{t('common.error', 'Error')}: {error}</Text>
+          <TouchableOpacity style={styles.retryButton} onPress={loadLocalTemplates}>
+            <Text style={styles.retryButtonText}>{t('common.retry', 'Retry')}</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
+  if (templates.length === 0) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.headerBar}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backButtonHeader}
+          >
+            <Icon 
+              name={isRTL ? "keyboard-arrow-right" : "keyboard-arrow-left"} 
+              size={28} 
+              color="#333" 
+            />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>
+            {categoryDisplayName || category}
+          </Text>
+          <View style={styles.headerSpacer} />
+        </View>
+        
+        <View style={styles.centerContainer}>
+          <Icon name="folder-open" size={64} color="#ccc" />
+          <Text style={styles.emptyText}>{t('templates.noTemplatesInCategory', 'No templates in this category')}</Text>
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.headerBar}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
-          style={styles.backButton}
+          style={styles.backButtonHeader}
         >
           <Icon 
             name={isRTL ? "keyboard-arrow-right" : "keyboard-arrow-left"} 
@@ -253,41 +337,13 @@ const CategoryTemplatesScreen = ({ route, navigation }) => {
             color="#333" 
           />
         </TouchableOpacity>
-      ),
-    });
-  }, [navigation, category, categoryDisplayName, isRTL]);
-
-  if (loading) {
-    return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#4CAF50" />
-        <Text style={styles.loadingText}>{t('common.loading', 'Loading...')}</Text>
+        <Text style={styles.headerTitle}>
+          {categoryDisplayName || category}
+        </Text>
+        <View style={styles.headerSpacer} />
       </View>
-    );
-  }
-
-  if (error) {
-    return (
-      <View style={styles.centerContainer}>
-        <Text style={styles.errorText}>{t('common.error', 'Error')}: {error}</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={loadLocalTemplates}>
-          <Text style={styles.retryButtonText}>{t('common.retry', 'Retry')}</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
-
-  if (templates.length === 0) {
-    return (
-      <View style={styles.centerContainer}>
-        <Icon name="folder-open" size={64} color="#ccc" />
-        <Text style={styles.emptyText}>{t('templates.noTemplatesInCategory', 'No templates in this category')}</Text>
-      </View>
-    );
-  }
-
-  return (
-    <ScrollView style={[styles.container, isRTL && styles.containerRTL]}>
+      
+      <ScrollView style={[styles.scrollContainer, isRTL && styles.containerRTL]}>
       <View style={styles.content}>
         <View style={styles.templatesGrid}>
           {templates.map((template) => (
@@ -340,6 +396,7 @@ const CategoryTemplatesScreen = ({ route, navigation }) => {
         </View>
       </View>
     </ScrollView>
+    </View>
   );
 };
 
@@ -347,6 +404,36 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
+  },
+  headerBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#fff',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+    elevation: 2,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  backButtonHeader: {
+    padding: 8,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+    flex: 1,
+    textAlign: 'center',
+  },
+  headerSpacer: {
+    width: 44,
+  },
+  scrollContainer: {
+    flex: 1,
   },
   containerRTL: {
     direction: 'rtl',
