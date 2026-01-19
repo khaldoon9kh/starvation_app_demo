@@ -286,10 +286,19 @@ export const areTemplatesDownloaded = async () => {
  */
 export const clearDownloadedTemplates = async () => {
   try {
+    // Remove from AsyncStorage
     await AsyncStorage.removeItem(TEMPLATES_STORAGE_KEY);
     await AsyncStorage.removeItem(TEMPLATES_METADATA_KEY);
+    
+    // Delete template files from filesystem
+    const templatesDir = `${FileSystem.documentDirectory}templates/`;
+    const dirInfo = await FileSystem.getInfoAsync(templatesDir);
+    if (dirInfo.exists) {
+      await FileSystem.deleteAsync(templatesDir, { idempotent: true });
+    }
+    
+    return { success: true };
   } catch (error) {
-    console.error('Error clearing downloaded templates:', error);
     throw error;
   }
 };
@@ -514,6 +523,7 @@ export const downloadAllDiagrams = async () => {
 /**
  * Download individual diagram image to device storage (bilingual version)
  * Downloads BOTH English and Arabic versions and stores them separately
+ * Stores file paths instead of base64 to save AsyncStorage space
  */
 const downloadDiagramImage = async (diagram) => {
   try {
@@ -538,22 +548,8 @@ const downloadDiagramImage = async (diagram) => {
         const downloadResultEn = await FileSystem.downloadAsync(imageUrlEn, localUriEn);
         
         if (downloadResultEn.status === 200) {
-          // Convert to base64
-          const base64En = await FileSystem.readAsStringAsync(localUriEn, {
-            encoding: FileSystem.EncodingType.Base64,
-          });
-          
-          const extension = fileNameEn.split('.').pop().toLowerCase();
-          const mimeTypes = {
-            'jpg': 'image/jpeg',
-            'jpeg': 'image/jpeg',
-            'png': 'image/png',
-            'gif': 'image/gif',
-            'webp': 'image/webp'
-          };
-          const mimeType = mimeTypes[extension] || 'image/jpeg';
-          
-          result.localPathEn = `data:${mimeType};base64,${base64En}`;
+          // Store file path instead of base64 to save AsyncStorage space
+          result.localPathEn = localUriEn;
         }
       } catch (error) {
         result.localPathEn = null;
@@ -570,22 +566,8 @@ const downloadDiagramImage = async (diagram) => {
         const downloadResultAr = await FileSystem.downloadAsync(imageUrlAr, localUriAr);
         
         if (downloadResultAr.status === 200) {
-          // Convert to base64
-          const base64Ar = await FileSystem.readAsStringAsync(localUriAr, {
-            encoding: FileSystem.EncodingType.Base64,
-          });
-          
-          const extension = fileNameAr.split('.').pop().toLowerCase();
-          const mimeTypes = {
-            'jpg': 'image/jpeg',
-            'jpeg': 'image/jpeg',
-            'png': 'image/png',
-            'gif': 'image/gif',
-            'webp': 'image/webp'
-          };
-          const mimeType = mimeTypes[extension] || 'image/jpeg';
-          
-          result.localPathAr = `data:${mimeType};base64,${base64Ar}`;
+          // Store file path instead of base64 to save AsyncStorage space
+          result.localPathAr = localUriAr;
         }
       } catch (error) {
         result.localPathAr = null;
@@ -596,7 +578,6 @@ const downloadDiagramImage = async (diagram) => {
     return result.localPathEn || result.localPathAr ? result : null;
     
   } catch (error) {
-    console.error('Error downloading diagram images:', error);
     return null;
   }
 };

@@ -137,7 +137,9 @@ const SettingsScreen = ({ navigation, route }) => {
       setShowProgressModal(false);
       
       // Navigate to splash screen to force complete app refresh
-      navigation.reset({
+      // Use getParent() to access the root Stack navigator from Tab navigator
+      const rootNavigation = navigation.getParent() || navigation;
+      rootNavigation.reset({
         index: 0,
         routes: [{ name: 'Home' }],
       });
@@ -223,7 +225,9 @@ const SettingsScreen = ({ navigation, route }) => {
       setShowProgressModal(false);
       
       // Navigate to splash/loading screen to force complete app refresh
-      navigation.reset({
+      // Use getParent() to access the root Stack navigator from Tab navigator
+      const rootNavigation = navigation.getParent() || navigation;
+      rootNavigation.reset({
         index: 0,
         routes: [{ name: 'Splash' }],
       });

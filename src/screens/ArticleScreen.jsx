@@ -771,8 +771,8 @@ const rtlMarkdownStyles = {
   heading4: {
     textAlign: 'right',
     writingDirection: 'rtl',
-    color: "red",
-    backgroundColor: "yellow",
+    // color: "red",
+    // backgroundColor: "yellow",
     marginRight: 0,
   },
   list_item: {
