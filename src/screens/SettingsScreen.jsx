@@ -490,7 +490,7 @@ const SettingsScreen = ({ navigation, route }) => {
             </>
           )}
 
-          {/* App Settings Section */}
+          {/* App Settings Section
           <Text style={[
             styles.sectionTitle,
             { textAlign: isRTL ? 'right' : 'left' }
@@ -520,7 +520,7 @@ const SettingsScreen = ({ navigation, route }) => {
               trackColor={{ false: '#ccc', true: '#4CAF50' }}
               thumbColor={offlineModeEnabled ? '#fff' : '#fff'}
             />
-          )}
+          )} */}
 
           {/* App Info Section */}
           <Text style={[

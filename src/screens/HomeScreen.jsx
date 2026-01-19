@@ -32,43 +32,56 @@ const HomeScreen = () => {
   };
 
   // Define content based on language
-  const englishContent = `**Welcome to the Global Rights Compliance (GRC) Starvation Accountability app!** This mobile app is based on the Second Edition (2022) of GRC's unique [Starvation Training Manual](https://starvationaccountability.org/resources/starvation-training-manual/), a toolkit designed to assist a wide range of professionals and practitioners in identifying, investigating and addressing the deliberate use of starvation as a weapon of war and tool against civilians.
+  const englishContent = `**Welcome to the Global Rights Compliance (GRC) Starvation Accountability app!**  
+This mobile app is based on the Second Edition (2022) of GRC's [Starvation Training Manual](https://starvationaccountability.org/resources/starvation-training-manual/), a toolkit designed to support a wide range of professionals and practitioners in identifying, investigating, and addressing the deliberate use of starvation as a weapon of war and a tool against civilians.
 
-The purpose of this app is to provide users with a succinct, portable version of the Starvation Training Manual, setting out key information to assist practitioners in responding to starvation crimes and violations. The app is divided into the following sections:
+The purpose of this app is to provide users with a concise, portable version of the Starvation Training Manual, setting out key information to assist practitioners in responding to starvation-related crimes and violations. The app is divided into the following sections:
 
-**Law on Starvation**: Sets out the international criminal, humanitarian and human rights law frameworks relevant to starvation-related crimes and violations. Particularly useful for practitioners, it explains on an introductory level what to look for in a starvation investigation by analysing under international criminal law (1) the elements of the war crime of starvation, (2) mental elements utilised to establish perpetrators' criminal intent, and (3) the various modes of liability through which perpetrators can be held responsible, in accordance with the International Criminal Court's (ICC) Rome Statute (the key permanent body that is concerned with [accountability](reference) for international crimes).
+**Law on Starvation**: Sets out the international criminal, humanitarian, and human rights law frameworks relevant to starvation-related crimes and violations. It explains at an introductory level what to look for in a starvation investigation by analysing, under international criminal law, (1) the elements of the war crime of starvation, (2) the mental elements used to establish criminal intent, and (3) the various modes of liability through which perpetrators may be held responsible, in accordance with the International Criminal Court’s Rome Statute.
 
-**Basic Investigation Standards**: Identifies the essential investigative principles and techniques that must be adhered to while conducting an investigation into starvation crimes and violations. This section also features unique practical guides, including how to conduct open-source intelligence (OSINT) investigations and how to interview vulnerable individuals.
+**Basic Investigation Standards**: Identifies essential investigative principles and techniques to be followed when conducting investigations into starvation-related crimes and violations. This section also includes practical guidance, such as conducting open-source intelligence (OSINT) investigations and interviewing vulnerable individuals.
 
-**Remedies**: Offers guidance on bringing a case, submission, or complaint before international and domestic courts, UN human rights bodies and investigative mechanisms, and sanctions regimes. This section also analyses the obligations and avenues for engagement arising out of UN Security Council Resolution 2417 on conflict and hunger.
+**Remedies**: Provides guidance on bringing cases, submissions, or complaints before international and domestic courts, UN human rights bodies and mechanisms, and sanctions regimes. This section also analyses obligations and engagement avenues arising from UN Security Council Resolution 2417 on conflict and hunger.
 
-**Starvation-Related Crimes**: Considers, in addition to the elements of the war crime of starvation analysed under 'Law on Starvation', several alternative crimes amounting to genocide, crimes against humanity and war crimes that may be found to have occurred in a starvation situation.
+**Starvation-Related Crimes**: Examines, in addition to the war crime of starvation, other crimes under international law that may arise in starvation contexts, including genocide, crimes against humanity, and war crimes.
 
-This app also contains several practical **templates and checklists** that would be of use to practitioners while conducting interviews, preparing investigations and collecting evidence, as well as while seeking to raise the issue of starvation violations in an appropriate forum.
+This app also contains practical **templates and checklists** that may support practitioners during interviews, investigations, evidence collection, and when raising concerns about starvation violations in appropriate forums.
 
-For guidance on navigating the app, please see the [User's Guide](#!userguide). To download the app's contents and for updates, please go to [Settings](#!settings).
+For guidance on navigating the app, please see the [User's Guide](#!userguide). To download content and manage updates, please go to [Settings](#!settings).
 
-The app was developed under GRC's flagship '[Accountability](reference) for Mass Starvation: Testing the Limits of the Law' project, funded by the Kingdom of The Netherlands' Ministry of Foreign Affairs. The views expressed here are those of GRC and may not coincide with the official position of The Netherlands.  
-More information and additional resources are available at: [https://starvationaccountability.org/](https://starvationaccountability.org/).`;
+This app was developed as part of GRC’s project **“Accountability for Mass Starvation: Testing the Limits of the Law”**, which received financial support from the Dutch Ministry of Foreign Affairs. The content of this app reflects the work of Global Rights Compliance alone.
 
-  const arabicContent = `مرحبًا بك في **تطبيق [المساءلة](reference) عن التجويع لمؤسسة الامتثال للحقوق العالمية (GRC)!** يرتكز هذا التطبيق على الإصدار الثاني (2022) من [دليل تدريب التجويع](https://starvationaccountability.org/resources/starvation-training-manual/) الفريد الخاص بمؤسسة الامتثال للحقوق العالمية، وهو عبارة عن مجموعة أدوات مصممة لمساعدة مجموعة واسعة من المهنيين والممارسين في التعرف والتحقيق والتطرق للاستخدام المتعمد للتجويع كسلاح حرب وأداة ضد المدنيين.
+**Disclaimer:** This application is an independent educational resource and is **not affiliated with, endorsed by, or representative of any government entity**, including the Government of the Netherlands.
 
-الغرض من هذا التطبيق هو تزويد المستخدمين بنسخة محمولة وموجزة من دليل التدريب على التجويع، مع تحديد المعلومات الأساسية لمساعدة الممارسين في الاستجابة لجرائم وانتهاكات التجويع. وينقسم التطبيق إلى الأقسام التالية:
+More information and additional resources are available at:  
+[https://starvationaccountability.org/](https://starvationaccountability.org/).`;
 
-**قانون التجويع:** يحدد أطر القانون الجنائي الدولي والإنساني وقانون حقوق الإنسان المتصلة بالجرائم والانتهاكات المتعلقة بالتجويع. وهو مفيد بشكل خاص للممارسين، فهو يشرح على المستوى التمهيدي ما يجب البحث عنه في التحقيق في التجويع من خلال التحليل بموجب القانون الجنائي الدولي (1) عناصر جريمة الحرب المتمثلة في التجويع، (2) العناصر العقلية المستخدمة لإثبات النية الإجرامية للجناة، و(3) مختلف أشكال المسؤولية التي يمكن من خلالها تحميل الجناة المسؤولية، وفقاً لنظام روما الأساسي للمحكمة الجنائية الدولية (الهيئة الدائمة الرئيسية المعنية بـ[المساءلة](reference) عن الجرائم الدولية).
+const arabicContent = `مرحبًا بك في **تطبيق المساءلة عن التجويع التابع لمؤسسة الامتثال للحقوق العالمية (GRC)!**  
+يعتمد هذا التطبيق على الإصدار الثاني (2022) من [دليل تدريب التجويع](https://starvationaccountability.org/resources/starvation-training-manual/) الصادر عن مؤسسة الامتثال للحقوق العالمية، وهو دليل عملي يهدف إلى دعم مجموعة واسعة من المهنيين والممارسين في التعرف على الاستخدام المتعمد للتجويع كسلاح حرب والتحقيق فيه والتصدي له.
 
-**معايير التحقيق الأساسية:** تحديد مبادئ وتقنيات التحقيق الأساسية التي يجب الالتزام بها أثناء إجراء التحقيق في جرائم وانتهاكات التجويع. يحتوي هذا القسم أيضًا على أدلة عملية فريدة من نوعها، بما في ذلك كيفية إجراء تحقيقات مفتوحة المصدر (OSINT) وكيفية إجراء المقابلات.
+يهدف هذا التطبيق إلى تزويد المستخدمين بنسخة مختصرة ومحمولة من دليل تدريب التجويع، تتضمن معلومات أساسية لمساعدة الممارسين في التعامل مع الجرائم والانتهاكات المتعلقة بالتجويع. وينقسم التطبيق إلى الأقسام التالية:
 
-**سبل الانتصاف:** تقدم إرشادات بشأن رفع قضية أو تقديم شكوى أمام المحاكم الدولية والمحلية، وهيئات حقوق الإنسان التابعة للأمم المتحدة وآليات التحقيق، وأنظمة العقوبات. ويحلل هذا القسم أيضًا الالتزامات وسبل المشاركة الناشئة عن قرار مجلس الأمن التابع للأمم المتحدة رقم 2417 بشأن النزاع والجوع.
+**قانون التجويع:** يعرض أطر القانون الجنائي الدولي والقانون الدولي الإنساني وقانون حقوق الإنسان ذات الصلة بالجرائم والانتهاكات المرتبطة بالتجويع. ويوضح على المستوى التمهيدي ما ينبغي البحث عنه أثناء التحقيق، من خلال تحليل (1) عناصر جريمة الحرب المتمثلة في التجويع، (2) العناصر الذهنية لإثبات القصد الجنائي، و(3) أشكال المسؤولية التي يمكن من خلالها مساءلة الجناة، وفقًا لنظام روما الأساسي للمحكمة الجنائية الدولية.
 
-**الجرائم المتعلقة بالتجويع:** بالإضافة إلى عناصر جريمة الحرب المتمثلة في التجويع التي تم تحليلها بموجب "قانون التجويع"، هناك العديد من الجرائم البديلة التي ترقى إلى مستوى الإبادة الجماعية والجرائم ضد الإنسانية وجرائم الحرب التي قد يتبين أنها حدثت في حالة التجويع.
+**معايير التحقيق الأساسية:** يحدد المبادئ والتقنيات الأساسية التي يجب الالتزام بها عند إجراء تحقيقات في جرائم وانتهاكات التجويع. كما يتضمن إرشادات عملية مثل كيفية إجراء تحقيقات المصادر المفتوحة (OSINT) وكيفية إجراء المقابلات مع الفئات الضعيفة.
 
-ويحتوي هذا التطبيق أيضًا على العديد من **النماذج العملية وقوائم المراجعة** التي قد تكون مفيدة للممارسين أثناء إجراء المقابلات وإعداد التحقيقات وجمع الأدلة، وكذللك أثناء السعي لإثارة قضية انتهاكات التجويع في المنتدى المناسب.
+**سبل الانتصاف:** يقدم إرشادات بشأن رفع القضايا أو تقديم الشكاوى أمام المحاكم الدولية والمحلية، وهيئات وآليات حقوق الإنسان التابعة للأمم المتحدة، وأنظمة العقوبات. كما يحلل الالتزامات وسبل المشاركة الناشئة عن قرار مجلس الأمن رقم 2417 بشأن النزاع والجوع.
 
-للحصول على إرشادات حول التنقل في التطبيق، يرجى الاطلاع على [دليل المستخدم](#!userguide). لتنزيل محتويات التطبيق والحصول على التحديثات، يرجى الانتقال إلى [الإعدادات](#!settings).
+**الجرائم المرتبطة بالتجويع:** يتناول، بالإضافة إلى جريمة الحرب المتمثلة في التجويع، جرائم أخرى قد تنطبق في سياقات التجويع، بما في ذلك الإبادة الجماعية والجرائم ضد الإنسانية وجرائم الحرب.
 
-تم تطوير التطبيق في إطار المشروع الرائد لمؤسسة الامتثال للحقوق العالمية "[المساءلة](reference) عن المجاعة الجماعية: اختبار حدود القانون"، بتمويل من وزارة الشؤون الخارجية في مملكة هولندا. الآراء الواردة هنا هي آراء مؤسسة الامتثال للحقوق العالمية وقد لا تتطابق مع الموقف الرسمي لهولندا.  
-مزيد من المعلومات والموارد الإضافية متاحة على: [https://starvationaccountability.org/](https://starvationaccountability.org/).`;
+يتضمن هذا التطبيق أيضًا مجموعة من **النماذج العملية وقوائم المراجعة** التي قد تساعد الممارسين أثناء إجراء المقابلات، وإعداد التحقيقات، وجمع الأدلة، وكذلك عند إثارة قضايا انتهاكات التجويع أمام الجهات المختصة.
+
+للاطلاع على إرشادات استخدام التطبيق، يرجى الرجوع إلى [دليل المستخدم](#!userguide).  
+ولتنزيل المحتوى وإدارة التحديثات، يرجى الانتقال إلى [الإعدادات](#!settings).
+
+تم تطوير هذا التطبيق في إطار مشروع مؤسسة الامتثال للحقوق العالمية  
+**"المساءلة عن المجاعة الجماعية: اختبار حدود القانون"**، والذي تلقى دعمًا ماليًا من وزارة الشؤون الخارجية الهولندية. ويعكس محتوى هذا التطبيق عمل مؤسسة الامتثال للحقوق العالمية وحدها.
+
+**إخلاء مسؤولية:** هذا التطبيق مورد تعليمي مستقل، ولا يمثل ولا يرتبط بأي جهة حكومية، كما أنه غير معتمد من قبل أي حكومة، بما في ذلك حكومة مملكة هولندا.
+
+لمزيد من المعلومات والموارد الإضافية، يرجى زيارة:  
+[https://starvationaccountability.org/](https://starvationaccountability.org/).`;
+
 
   const content = i18n.language === 'ar' ? arabicContent : englishContent;
 

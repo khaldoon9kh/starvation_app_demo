@@ -5,13 +5,38 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Linking,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import Markdown from 'react-native-markdown-display';
 import { useTranslation } from 'react-i18next';
 
 const CopyrightScreen = ({ navigation }) => {
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === 'ar';
+
+  // Handle link presses
+  const handleLinkPress = (url) => {
+    Linking.openURL(url).catch(err => console.error('Failed to open URL:', err));
+    return false;
+  };
+
+  // Markdown styles
+  const markdownStyles = {
+    body: {
+      fontSize: 16,
+      lineHeight: 24,
+      color: '#333',
+      textAlign: isRTL ? 'right' : 'left',
+    },
+    link: {
+      color: '#4CAF50',
+      textDecorationLine: 'underline',
+    },
+    paragraph: {
+      marginBottom: 12,
+    },
+  };
 
   return (
     <View style={styles.container}>
@@ -50,12 +75,12 @@ const CopyrightScreen = ({ navigation }) => {
             {t('copyright') || 'Copyright'}
           </Text>
           
-          <Text style={[
-            styles.description,
-            { textAlign: isRTL ? 'right' : 'left' }
-          ]}>
+          <Markdown 
+            style={markdownStyles}
+            onLinkPress={(url) => handleLinkPress(url)}
+          >
             {t('copyright_description') || 'Content will be provided later. This page will contain copyright information and legal notices.'}
-          </Text>
+          </Markdown>
         </View>
       </ScrollView>
     </View>

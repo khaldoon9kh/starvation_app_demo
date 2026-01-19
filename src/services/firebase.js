@@ -2,15 +2,15 @@ import { initializeApp } from 'firebase/app';
 import { getFirestore, initializeFirestore, connectFirestoreEmulator } from 'firebase/firestore';
 import { getStorage, connectStorageEmulator, ref, getBytes } from 'firebase/storage';
 
-// Your Firebase configuration
-// Replace these values with your actual Firebase project configuration
+// Firebase configuration using environment variables
+// These are loaded from .env file locally or EAS Secrets for builds
 const firebaseConfig = {
-  apiKey: "AIzaSyCdH5lZicu0We3LBMi54aFISFL3LFfswxM",
-  authDomain: "starvation-app.firebaseapp.com",
-  projectId: "starvation-app",
-  storageBucket: "starvation-app.firebasestorage.app",
-  messagingSenderId: "804869298527",
-  appId: "1:804869298527:web:ecb1b0e7808772f6b13eea"
+  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
 };
 
 // Initialize Firebase
