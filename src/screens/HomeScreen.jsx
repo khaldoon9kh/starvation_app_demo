@@ -51,7 +51,6 @@ For guidance on navigating the app, please see the [User's Guide](#!userguide). 
 
 This app was developed as part of GRC’s project **“Accountability for Mass Starvation: Testing the Limits of the Law”**, which received financial support from the Dutch Ministry of Foreign Affairs. The content of this app reflects the work of Global Rights Compliance alone.
 
-**Disclaimer:** This application is an independent educational resource and is **not affiliated with, endorsed by, or representative of any government entity**, including the Government of the Netherlands.
 
 More information and additional resources are available at:  
 [https://starvationaccountability.org/](https://starvationaccountability.org/).`;
@@ -76,8 +75,6 @@ const arabicContent = `مرحبًا بك في **تطبيق المساءلة عن
 
 تم تطوير هذا التطبيق في إطار مشروع مؤسسة الامتثال للحقوق العالمية  
 **"المساءلة عن المجاعة الجماعية: اختبار حدود القانون"**، والذي تلقى دعمًا ماليًا من وزارة الشؤون الخارجية الهولندية. ويعكس محتوى هذا التطبيق عمل مؤسسة الامتثال للحقوق العالمية وحدها.
-
-**إخلاء مسؤولية:** هذا التطبيق مورد تعليمي مستقل، ولا يمثل ولا يرتبط بأي جهة حكومية، كما أنه غير معتمد من قبل أي حكومة، بما في ذلك حكومة مملكة هولندا.
 
 لمزيد من المعلومات والموارد الإضافية، يرجى زيارة:  
 [https://starvationaccountability.org/](https://starvationaccountability.org/).`;
