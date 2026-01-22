@@ -20,7 +20,7 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.grc.starvation.toolkit",
+      "bundleIdentifier": "com.grc.starvationaccountability",
       "buildNumber": "1",
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "This app needs access to your photo library to save diagrams and templates.",
@@ -30,7 +30,16 @@
     },
     "android": {
       "package": "com.grc.starvation.toolkit",
-      "versionCode": 1
+      "versionCode": 1,
+      "permissions": [
+        "WRITE_EXTERNAL_STORAGE"
+      ],
+      "blockedPermissions": [
+        "READ_MEDIA_IMAGES",
+        "READ_MEDIA_VIDEO",
+        "READ_MEDIA_AUDIO",
+        "READ_EXTERNAL_STORAGE"
+      ]
     },
     "newArchEnabled": true,
     "extra": {
