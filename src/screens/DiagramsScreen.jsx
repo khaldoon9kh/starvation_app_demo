@@ -88,8 +88,8 @@ const DiagramsScreen = ({ navigation }) => {
     try {
       setDownloading(true);
       
-      // Request write-only permissions (false = write-only, no read access needed)
-      const { status } = await MediaLibrary.requestPermissionsAsync(false);
+      // Request write-only permissions (true = write-only, no read access needed)
+      const { status } = await MediaLibrary.requestPermissionsAsync(true);
       if (status !== 'granted') {
         Alert.alert(
           t('diagrams.permissionDenied', 'Permission Denied'),
@@ -132,9 +132,8 @@ const DiagramsScreen = ({ navigation }) => {
         throw new Error('Invalid image data format');
       }
 
-      // Save to media library
-      const asset = await MediaLibrary.createAssetAsync(fileUri);
-      await MediaLibrary.createAlbumAsync('Starvation Toolkit', asset, false);
+      // Save to media library (using saveToLibraryAsync which doesn't require READ permissions)
+      await MediaLibrary.saveToLibraryAsync(fileUri);
 
       // Clean up temp file
       await FileSystem.deleteAsync(fileUri, { idempotent: true });
