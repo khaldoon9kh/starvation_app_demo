@@ -185,7 +185,7 @@ class DataStore {
     this.notifyListeners();
 
     try {
-      // Load cached data first for immediate UI update
+      // Load cached data first for immediate UI update (from 'appData' key)
       const hasCache = await this.loadCachedData();
       
       if (hasCache) {
@@ -195,7 +195,17 @@ class DataStore {
         return;
       }
 
-      // No cache - this shouldn't happen if initialized properly, but load from Firebase
+      // If no appData cache, try loading from app_content_data (Settings download)
+      // This handles the case where the app was closed before saveToCache completed
+      const hasContentData = await this.reloadFromCache();
+      
+      if (hasContentData) {
+        this.loading = false;
+        this.notifyListeners();
+        return;
+      }
+
+      // No cache at all - this shouldn't happen if initialized properly, but load from Firebase
       await this.loadInitialData();
 
     } catch (error) {

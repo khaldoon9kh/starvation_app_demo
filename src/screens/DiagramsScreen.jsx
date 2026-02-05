@@ -88,8 +88,8 @@ const DiagramsScreen = ({ navigation }) => {
     try {
       setDownloading(true);
       
-      // Request permissions
-      const { status } = await MediaLibrary.requestPermissionsAsync();
+      // Request write-only permissions (false = write-only, no read access needed)
+      const { status } = await MediaLibrary.requestPermissionsAsync(false);
       if (status !== 'granted') {
         Alert.alert(
           t('diagrams.permissionDenied', 'Permission Denied'),

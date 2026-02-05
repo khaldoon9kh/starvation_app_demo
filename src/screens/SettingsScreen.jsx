@@ -92,24 +92,31 @@ const SettingsScreen = ({ navigation, route }) => {
       setDownloadStats(prev => ({ ...prev, currentStep: t('settingsScreen.preparingDownload', 'Preparing download...'), currentStepNumber: 1 }));
       setDownloadProgress(t('settingsScreen.preparingDownload', 'Preparing download...'));
       
+      // Small delay to ensure modal is rendered
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       // Fetch all content metadata from Firebase
       setDownloadStats(prev => ({ ...prev, currentStep: t('settingsScreen.fetchingData', 'Fetching latest content...'), currentStepNumber: 2 }));
       setDownloadProgress(t('settingsScreen.fetchingData', 'Fetching latest content...'));
       const contentData = await getAllContentForCache();
       
-      // Update stats with content counts
+      // Update stats with content counts - combine with step 3 update
       setDownloadStats(prev => ({
         ...prev,
+        currentStep: t('settingsScreen.savingData', 'Saving content locally...'),
+        currentStepNumber: 3,
         categoriesCount: contentData.categories?.length || 0,
         subcategoriesCount: contentData.subcategories?.length || 0,
         templatesCount: contentData.templates?.length || 0,
         diagramsCount: contentData.diagrams?.length || 0,
         glossaryCount: contentData.glossary?.length || 0,
       }));
+      setDownloadProgress(t('settingsScreen.savingData', 'Saving content locally...'));
+      
+      // Small delay to ensure stats are rendered before continuing
+      await new Promise(resolve => setTimeout(resolve, 100));
       
       // Store content metadata
-      setDownloadStats(prev => ({ ...prev, currentStep: t('settingsScreen.savingData', 'Saving content locally...'), currentStepNumber: 3 }));
-      setDownloadProgress(t('settingsScreen.savingData', 'Saving content locally...'));
       await AsyncStorage.setItem(CONTENT_DATA_KEY, JSON.stringify(contentData));
       
       // Download template files to device storage
@@ -134,17 +141,13 @@ const SettingsScreen = ({ navigation, route }) => {
       const dataStore = await import('../services/dataStore');
       await dataStore.default.reloadFromCache();
       
+      // Small delay to ensure cache is written
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       setShowProgressModal(false);
+      setDownloading(false);
       
-      // Navigate to splash screen to force complete app refresh
-      // Use getParent() to access the root Stack navigator from Tab navigator
-      const rootNavigation = navigation.getParent() || navigation;
-      rootNavigation.reset({
-        index: 0,
-        routes: [{ name: 'Home' }],
-      });
-      
-      // Show success message
+      // Show success message, then navigate after user acknowledges
       Alert.alert(
         t('settingsScreen.downloadComplete', 'Download Complete'),
         t('settingsScreen.downloadSuccessMessage', 'Content has been successfully downloaded. The app is now ready to use!'),
@@ -152,8 +155,12 @@ const SettingsScreen = ({ navigation, route }) => {
           { 
             text: t('common.ok', 'OK'), 
             onPress: () => {
-              // Navigate to main app
-              navigation.replace('MainTabs');
+              // Navigate to splash which will redirect to MainTabs
+              const rootNavigation = navigation.getParent() || navigation;
+              rootNavigation.reset({
+                index: 0,
+                routes: [{ name: 'Splash' }],
+              });
             }
           }
         ]
@@ -179,24 +186,31 @@ const SettingsScreen = ({ navigation, route }) => {
       setDownloadStats(prev => ({ ...prev, currentStep: t('settingsScreen.preparingDownload', 'Preparing download...'), currentStepNumber: 1 }));
       setDownloadProgress(t('settingsScreen.preparingDownload', 'Preparing download...'));
       
+      // Small delay to ensure modal is rendered
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       // Fetch all content metadata from Firebase
       setDownloadStats(prev => ({ ...prev, currentStep: t('settingsScreen.fetchingData', 'Fetching latest content...'), currentStepNumber: 2 }));
       setDownloadProgress(t('settingsScreen.fetchingData', 'Fetching latest content...'));
       const contentData = await getAllContentForCache();
       
-      // Update stats with content counts
+      // Update stats with content counts - combine with step 3 update
       setDownloadStats(prev => ({
         ...prev,
+        currentStep: t('settingsScreen.savingData', 'Saving content locally...'),
+        currentStepNumber: 3,
         categoriesCount: contentData.categories?.length || 0,
         subcategoriesCount: contentData.subcategories?.length || 0,
         templatesCount: contentData.templates?.length || 0,
         diagramsCount: contentData.diagrams?.length || 0,
         glossaryCount: contentData.glossary?.length || 0,
       }));
+      setDownloadProgress(t('settingsScreen.savingData', 'Saving content locally...'));
+      
+      // Small delay to ensure stats are rendered before continuing
+      await new Promise(resolve => setTimeout(resolve, 100));
       
       // Store content metadata
-      setDownloadStats(prev => ({ ...prev, currentStep: t('settingsScreen.savingData', 'Saving content locally...'), currentStepNumber: 3 }));
-      setDownloadProgress(t('settingsScreen.savingData', 'Saving content locally...'));
       await AsyncStorage.setItem(CONTENT_DATA_KEY, JSON.stringify(contentData));
       
       // Download/update template files to device storage
@@ -222,17 +236,13 @@ const SettingsScreen = ({ navigation, route }) => {
       const dataStore = await import('../services/dataStore');
       await dataStore.default.reloadFromCache();
       
+      // Small delay to ensure cache is written
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       setShowProgressModal(false);
+      setDownloading(false);
       
-      // Navigate to splash/loading screen to force complete app refresh
-      // Use getParent() to access the root Stack navigator from Tab navigator
-      const rootNavigation = navigation.getParent() || navigation;
-      rootNavigation.reset({
-        index: 0,
-        routes: [{ name: 'Splash' }],
-      });
-      
-      // Show success message
+      // Show success message, then navigate after user acknowledges
       Alert.alert(
         t('settingsScreen.refreshComplete', 'Content Updated'),
         t('settingsScreen.refreshSuccessMessage', 'Content has been updated. The app will restart.'),
@@ -240,7 +250,12 @@ const SettingsScreen = ({ navigation, route }) => {
           { 
             text: t('common.ok', 'OK'), 
             onPress: () => {
-              // Stay on settings screen, content is updated
+              // Navigate to splash which will redirect to MainTabs
+              const rootNavigation = navigation.getParent() || navigation;
+              rootNavigation.reset({
+                index: 0,
+                routes: [{ name: 'Splash' }],
+              });
             }
           }
         ]
