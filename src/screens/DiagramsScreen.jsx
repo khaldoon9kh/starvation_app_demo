@@ -14,7 +14,6 @@ import {
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useTranslation } from 'react-i18next';
 import * as FileSystem from 'expo-file-system';
-import * as MediaLibrary from 'expo-media-library';
 import * as Sharing from 'expo-sharing';
 import { getLocalDiagrams } from '../services/templateManager';
 
@@ -87,18 +86,6 @@ const DiagramsScreen = ({ navigation }) => {
 
     try {
       setDownloading(true);
-      
-      // Request write-only permissions (true = write-only, no read access needed)
-      const { status } = await MediaLibrary.requestPermissionsAsync(true);
-      if (status !== 'granted') {
-        Alert.alert(
-          t('diagrams.permissionDenied', 'Permission Denied'),
-          t('diagrams.permissionMessage', 'We need permission to save images to your gallery'),
-          [{ text: t('common.ok', 'OK') }]
-        );
-        setDownloading(false);
-        return;
-      }
 
       const imageData = getDiagramImageUrl(selectedDiagram);
       if (!imageData) {
@@ -113,7 +100,7 @@ const DiagramsScreen = ({ navigation }) => {
 
       // Create a unique filename
       const filename = `diagram_${selectedDiagram.id}_${Date.now()}.png`;
-      const fileUri = `${FileSystem.documentDirectory}${filename}`;
+      const fileUri = `${FileSystem.cacheDirectory}${filename}`;
 
       // Convert base64 to file if needed
       if (imageData.startsWith('data:')) {
@@ -132,8 +119,16 @@ const DiagramsScreen = ({ navigation }) => {
         throw new Error('Invalid image data format');
       }
 
-      // Save to media library (using saveToLibraryAsync which doesn't require READ permissions)
-      await MediaLibrary.saveToLibraryAsync(fileUri);
+      // Use Sharing API to let user save to gallery - no permissions needed!
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(fileUri, {
+          mimeType: 'image/png',
+          dialogTitle: t('diagrams.saveDiagram', 'Save Diagram'),
+          UTI: 'public.png'
+        });
+      } else {
+        throw new Error('Sharing is not available on this device');
+      }
 
       // Clean up temp file
       await FileSystem.deleteAsync(fileUri, { idempotent: true });

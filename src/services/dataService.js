@@ -812,3 +812,64 @@ export const getFallbackTemplates = () => [
     order: 1
   }
 ];
+
+// ==================== DOWNLOAD SIZE ESTIMATION ====================
+
+/**
+ * Estimate total download size of all downloadable binary assets
+ * (template PDFs + diagram images, both language versions).
+ * Sizes are read from Firestore metadata fields — no files are fetched.
+ */
+export const estimateDownloadSize = async () => {
+  try {
+    const [templates, diagrams] = await Promise.all([
+      getTemplates(),
+      getDiagrams()
+    ]);
+
+    let totalBytes = 0;
+    let hasSize = false;
+
+    templates.forEach(template => {
+      if (template.pdfSizeEn && typeof template.pdfSizeEn === 'number') {
+        totalBytes += template.pdfSizeEn;
+        hasSize = true;
+      }
+      if (template.pdfSizeAr && typeof template.pdfSizeAr === 'number') {
+        totalBytes += template.pdfSizeAr;
+        hasSize = true;
+      }
+    });
+
+    diagrams.forEach(diagram => {
+      if (diagram.imageSizeEn && typeof diagram.imageSizeEn === 'number') {
+        totalBytes += diagram.imageSizeEn;
+        hasSize = true;
+      }
+      if (diagram.imageSizeAr && typeof diagram.imageSizeAr === 'number') {
+        totalBytes += diagram.imageSizeAr;
+        hasSize = true;
+      }
+    });
+
+    return {
+      bytes: totalBytes,
+      hasSize,
+      templatesCount: templates.length,
+      diagramsCount: diagrams.length,
+    };
+  } catch (error) {
+    console.error('Error estimating download size:', error);
+    return { bytes: 0, hasSize: false, templatesCount: 0, diagramsCount: 0 };
+  }
+};
+
+/**
+ * Format a byte value into a human-readable string (B / KB / MB).
+ */
+export const formatBytes = (bytes) => {
+  if (!bytes || bytes <= 0) return null;
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+};

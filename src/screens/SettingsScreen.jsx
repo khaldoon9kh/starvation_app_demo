@@ -14,7 +14,7 @@ import {
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getAllContentForCache } from '../services/dataService';
+import { getAllContentForCache, estimateDownloadSize, formatBytes } from '../services/dataService';
 
 const CONTENT_STATUS_KEY = 'app_content_status';
 const CONTENT_DATA_KEY = 'app_content_data';
@@ -25,6 +25,7 @@ const SettingsScreen = ({ navigation, route }) => {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [offlineModeEnabled, setOfflineModeEnabled] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [fetchingSize, setFetchingSize] = useState(false);
   const [contentStatus, setContentStatus] = useState('none'); // 'none', 'downloading', 'downloaded'
   const [downloadProgress, setDownloadProgress] = useState('');
   const [showProgressModal, setShowProgressModal] = useState(false);
@@ -60,7 +61,7 @@ const SettingsScreen = ({ navigation, route }) => {
     if (showDownloadPrompt) {
       // Show download prompt after a short delay to ensure UI is ready
       setTimeout(() => {
-        showInitialDownloadPrompt();
+        confirmDownload();
       }, 500);
     }
   }, [showDownloadPrompt]);
@@ -74,15 +75,34 @@ const SettingsScreen = ({ navigation, route }) => {
     }
   };
 
-  const showInitialDownloadPrompt = () => {
-    Alert.alert(
-      t('settingsScreen.downloadRequired', 'Download Required'),
-      t('settingsScreen.downloadMessage', 'To use all app features, you need to download the latest content. This includes articles, templates, and other resources.'),
-      [
-        { text: t('common.cancel', 'Cancel'), style: 'cancel' },
-        { text: t('settingsScreen.downloadNow', 'Download Now'), onPress: handleDownloadContent }
-      ]
-    );
+  const confirmDownload = async () => {
+    setFetchingSize(true);
+    try {
+      const estimate = await estimateDownloadSize();
+      const sizeStr = estimate.hasSize ? formatBytes(estimate.bytes) : null;
+      const sizeInfo = sizeStr
+        ? t('settingsScreen.estimatedSize', 'Estimated download: {{size}}', { size: sizeStr })
+        : t('settingsScreen.sizeUnavailable', 'Download size not available');
+      Alert.alert(
+        t('settingsScreen.downloadRequired', 'Download Required'),
+        `${t('settingsScreen.downloadMessage', 'To use all app features, you need to download the latest content. This includes articles, templates, and other resources.')}\n\n${sizeInfo}\n\n${t('settingsScreen.wifiRecommended', 'A Wi-Fi connection is recommended for large downloads.')}`,
+        [
+          { text: t('common.cancel', 'Cancel'), style: 'cancel' },
+          { text: t('settingsScreen.downloadNow', 'Download Now'), onPress: handleDownloadContent },
+        ]
+      );
+    } catch {
+      Alert.alert(
+        t('settingsScreen.downloadRequired', 'Download Required'),
+        t('settingsScreen.downloadMessage', 'To use all app features, you need to download the latest content. This includes articles, templates, and other resources.'),
+        [
+          { text: t('common.cancel', 'Cancel'), style: 'cancel' },
+          { text: t('settingsScreen.downloadNow', 'Download Now'), onPress: handleDownloadContent },
+        ]
+      );
+    } finally {
+      setFetchingSize(false);
+    }
   };
 
   const handleDownloadContent = async () => {
@@ -136,36 +156,35 @@ const SettingsScreen = ({ navigation, route }) => {
       setDownloadProgress('');
       
       // Reload dataStore from AsyncStorage to refresh all screens
-      setDownloadStats(prev => ({ ...prev, currentStep: t('settingsScreen.reloadingApp', 'Reloading app...') }));
-      setDownloadProgress(t('settingsScreen.reloadingApp', 'Reloading app...'));
+      setDownloadStats(prev => ({ ...prev, currentStep: t('settingsScreen.finishingUp', 'Finishing up...') }));
+      setDownloadProgress(t('settingsScreen.finishingUp', 'Finishing up...'));
       const dataStore = await import('../services/dataStore');
       await dataStore.default.reloadFromCache();
-      
+
       // Small delay to ensure cache is written
       await new Promise(resolve => setTimeout(resolve, 500));
-      
+
       setShowProgressModal(false);
       setDownloading(false);
-      
-      // Show success message, then navigate after user acknowledges
+
+      // Show success message, then navigate directly to MainTabs (data already live)
       Alert.alert(
         t('settingsScreen.downloadComplete', 'Download Complete'),
         t('settingsScreen.downloadSuccessMessage', 'Content has been successfully downloaded. The app is now ready to use!'),
         [
-          { 
-            text: t('common.ok', 'OK'), 
+          {
+            text: t('common.ok', 'OK'),
             onPress: () => {
-              // Navigate to splash which will redirect to MainTabs
               const rootNavigation = navigation.getParent() || navigation;
               rootNavigation.reset({
                 index: 0,
-                routes: [{ name: 'Splash' }],
+                routes: [{ name: 'MainTabs' }],
               });
             }
           }
         ]
       );
-      
+
     } catch (error) {
       console.error('Error downloading content:', error);
       setShowProgressModal(false);
@@ -231,36 +250,35 @@ const SettingsScreen = ({ navigation, route }) => {
       setDownloadProgress('');
       
       // Reload dataStore from AsyncStorage to refresh all screens
-      setDownloadStats(prev => ({ ...prev, currentStep: t('settingsScreen.reloadingApp', 'Reloading app...') }));
-      setDownloadProgress(t('settingsScreen.reloadingApp', 'Reloading app...'));
+      setDownloadStats(prev => ({ ...prev, currentStep: t('settingsScreen.finishingUp', 'Finishing up...') }));
+      setDownloadProgress(t('settingsScreen.finishingUp', 'Finishing up...'));
       const dataStore = await import('../services/dataStore');
       await dataStore.default.reloadFromCache();
-      
+
       // Small delay to ensure cache is written
       await new Promise(resolve => setTimeout(resolve, 500));
-      
+
       setShowProgressModal(false);
       setDownloading(false);
-      
-      // Show success message, then navigate after user acknowledges
+
+      // Show success message, then navigate directly to MainTabs (data already live)
       Alert.alert(
         t('settingsScreen.refreshComplete', 'Content Updated'),
-        t('settingsScreen.refreshSuccessMessage', 'Content has been updated. The app will restart.'),
+        t('settingsScreen.refreshSuccessMessage', 'Content has been updated successfully and is ready to use.'),
         [
-          { 
-            text: t('common.ok', 'OK'), 
+          {
+            text: t('common.ok', 'OK'),
             onPress: () => {
-              // Navigate to splash which will redirect to MainTabs
               const rootNavigation = navigation.getParent() || navigation;
               rootNavigation.reset({
                 index: 0,
-                routes: [{ name: 'Splash' }],
+                routes: [{ name: 'MainTabs' }],
               });
             }
           }
         ]
       );
-      
+
     } catch (error) {
       console.error('Error refreshing content:', error);
       setShowProgressModal(false);
@@ -271,6 +289,36 @@ const SettingsScreen = ({ navigation, route }) => {
       );
     } finally {
       setDownloading(false);
+    }
+  };
+
+  const confirmRefresh = async () => {
+    setFetchingSize(true);
+    try {
+      const estimate = await estimateDownloadSize();
+      const sizeStr = estimate.hasSize ? formatBytes(estimate.bytes) : null;
+      const sizeInfo = sizeStr
+        ? t('settingsScreen.estimatedSize', 'Estimated download: {{size}}', { size: sizeStr })
+        : t('settingsScreen.sizeUnavailable', 'Download size not available');
+      Alert.alert(
+        t('settingsScreen.updateRequired', 'Update Content'),
+        `${t('settingsScreen.updateMessage', 'This will re-download all content to your device, replacing the current version.')}\n\n${sizeInfo}\n\n${t('settingsScreen.wifiRecommended', 'A Wi-Fi connection is recommended for large downloads.')}`,
+        [
+          { text: t('common.cancel', 'Cancel'), style: 'cancel' },
+          { text: t('settingsScreen.updateNow', 'Update Now'), onPress: handleRefreshContent },
+        ]
+      );
+    } catch {
+      Alert.alert(
+        t('settingsScreen.updateRequired', 'Update Content'),
+        t('settingsScreen.updateMessage', 'This will re-download all content to your device, replacing the current version.'),
+        [
+          { text: t('common.cancel', 'Cancel'), style: 'cancel' },
+          { text: t('settingsScreen.updateNow', 'Update Now'), onPress: handleRefreshContent },
+        ]
+      );
+    } finally {
+      setFetchingSize(false);
     }
   };
 
@@ -461,14 +509,16 @@ const SettingsScreen = ({ navigation, route }) => {
             {t('settingsScreen.contentManagement', 'Content Management')}
           </Text>
 
-          {downloading ? (
+          {(downloading || fetchingSize) ? (
             <View style={styles.downloadingContainer}>
               <ActivityIndicator size="small" color="#4CAF50" />
               <Text style={[
                 styles.downloadingText,
                 { textAlign: isRTL ? 'right' : 'left', marginLeft: isRTL ? 0 : 10, marginRight: isRTL ? 10 : 0 }
               ]}>
-                {downloadProgress}
+                {fetchingSize
+                  ? t('settingsScreen.estimatingSizes', 'Checking download size...')
+                  : downloadProgress}
               </Text>
             </View>
           ) : (
@@ -477,10 +527,10 @@ const SettingsScreen = ({ navigation, route }) => {
                 renderSettingItem(
                   t('settingsScreen.downloadContent', 'Download content updates'),
                   t('settingsScreen.contentNotDownloaded', 'Content not downloaded'),
-                  handleDownloadContent,
+                  confirmDownload,
                   <TouchableOpacity 
                     style={styles.downloadButton} 
-                    onPress={handleDownloadContent}
+                    onPress={confirmDownload}
                   >
                     <Text style={styles.downloadButtonText}>
                       {t('settingsScreen.download', 'DOWNLOAD')}
@@ -497,7 +547,7 @@ const SettingsScreen = ({ navigation, route }) => {
                   )}
                   <TouchableOpacity 
                     style={styles.refreshButton} 
-                    onPress={handleRefreshContent}
+                    onPress={confirmRefresh}
                   >
                     <Icon name="refresh" size={18} color="#fff" />
                     <Text style={styles.refreshButtonText}>

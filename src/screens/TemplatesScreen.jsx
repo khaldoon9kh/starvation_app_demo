@@ -18,6 +18,7 @@ import {
   getDownloadStats,
   getLocalTemplates
 } from '../services/templateManager';
+import { estimateDownloadSize, formatBytes } from '../services/dataService';
 
 const CONTENT_STATUS_KEY = 'app_content_status';
 const CONTENT_DATA_KEY = 'app_content_data';
@@ -118,15 +119,31 @@ const TemplatesScreen = ({navigation}) => {
     }
   };
 
-  const showDownloadPrompt = () => {
-    Alert.alert(
-      t('templates.downloadRequired', 'Download Required'),
-      t('templates.downloadMessage', 'Templates need to be downloaded before use. This will download all templates to your device.'),
-      [
-        { text: t('common.cancel', 'Cancel'), style: 'cancel' },
-        { text: t('templates.download', 'Download'), onPress: handleDownloadTemplates }
-      ]
-    );
+  const showDownloadPrompt = async () => {
+    try {
+      const estimate = await estimateDownloadSize();
+      const sizeStr = estimate.hasSize ? formatBytes(estimate.bytes) : null;
+      const sizeInfo = sizeStr
+        ? t('settingsScreen.estimatedSize', 'Estimated download: {{size}}', { size: sizeStr })
+        : t('settingsScreen.sizeUnavailable', 'Download size not available');
+      Alert.alert(
+        t('templates.downloadRequired', 'Download Required'),
+        `${t('templates.downloadMessage', 'Templates need to be downloaded before use. This will download all templates to your device.')}\n\n${sizeInfo}\n\n${t('settingsScreen.wifiRecommended', 'A Wi-Fi connection is recommended for large downloads.')}`,
+        [
+          { text: t('common.cancel', 'Cancel'), style: 'cancel' },
+          { text: t('templates.download', 'Download'), onPress: handleDownloadTemplates },
+        ]
+      );
+    } catch {
+      Alert.alert(
+        t('templates.downloadRequired', 'Download Required'),
+        t('templates.downloadMessage', 'Templates need to be downloaded before use. This will download all templates to your device.'),
+        [
+          { text: t('common.cancel', 'Cancel'), style: 'cancel' },
+          { text: t('templates.download', 'Download'), onPress: handleDownloadTemplates },
+        ]
+      );
+    }
   };
 
   const handleDownloadTemplates = async () => {
@@ -301,7 +318,7 @@ const TemplatesScreen = ({navigation}) => {
         {/* Re-download templates button */}
         <TouchableOpacity 
           style={styles.redownloadButton}
-          onPress={handleDownloadTemplates}>
+          onPress={showDownloadPrompt}>
           <Icon 
             name="refresh" 
             size={20} 

@@ -110,6 +110,11 @@
   "landing": {
     "letsGetReady": "LET'S GET READY",
     "description": "For the safety and security of our users, the content of this app must be manually downloaded and updated. You are seeing this message because the app currently has no content downloaded. Please go to settings and download the most recent version of the app's content.",
+    "downloadDescription": "To use this app, additional content must be downloaded to your device. This includes articles, templates, diagrams, and glossary terms.",
+    "downloadSize": "Download Size",
+    "downloadNow": "DOWNLOAD NOW",
+    "downloadingContent": "Downloading Content",
+    "doNotClose": "Please keep the app open until download is complete.",
     "settings": "SETTINGS",
     "skipForNow": "Skip for now",
     "skipTitle": "Continue Without Content?",
@@ -131,7 +136,16 @@
     "savingData": "Saving content locally...",
     "downloadComplete": "Download Complete",
     "downloadSuccessMessage": "Content has been successfully downloaded. The app is now ready to use!",
-    "downloadError": "Failed to download content. Please check your internet connection and try again."
+    "downloadError": "Failed to download content. Please check your internet connection and try again.",
+    "estimatedSize": "Estimated download: {{size}}",
+    "sizeUnavailable": "Download size not available",
+    "wifiRecommended": "A Wi-Fi connection is recommended for large downloads.",
+    "estimatingSizes": "Checking download size...",
+    "finishingUp": "Finishing up...",
+    "updateRequired": "Update Content",
+    "updateMessage": "This will re-download all content to your device, replacing the current version.",
+    "updateNow": "Update Now",
+    "refreshSuccessMessage": "Content has been updated successfully and is ready to use."
   },
   "app": {
     "name": "GRC Starvation Toolkit",

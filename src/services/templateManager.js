@@ -13,7 +13,7 @@ const DIAGRAMS_METADATA_KEY = 'diagrams_metadata';
 /**
  * Download and store all templates locally
  */
-export const downloadAllTemplates = async () => {
+export const downloadAllTemplates = async (onProgress) => {
   try {
     // Fetch all templates from Firebase
     const templates = await getTemplates();
@@ -21,7 +21,8 @@ export const downloadAllTemplates = async () => {
     const downloadedTemplates = {};
     const templatesMetadata = [];
     
-    for (const template of templates) {
+    for (let i = 0; i < templates.length; i++) {
+      const template = templates[i];
       try {
         // Download template files (both EN and AR) to local storage
         const localPaths = await downloadTemplateFile(template);
@@ -98,6 +99,9 @@ export const downloadAllTemplates = async () => {
           localPathAr: null,
           downloadError: error.message
         });
+      }
+      if (typeof onProgress === 'function' && templates.length > 0) {
+        onProgress((i + 1) / templates.length);
       }
     }
     
@@ -423,7 +427,7 @@ export const updateTemplates = async () => {
 /**
  * Download and store all diagram images locally
  */
-export const downloadAllDiagrams = async () => {
+export const downloadAllDiagrams = async (onProgress) => {
   try {
     // Fetch all diagrams from Firebase
     const diagrams = await getDiagrams();
@@ -431,7 +435,8 @@ export const downloadAllDiagrams = async () => {
     const downloadedDiagrams = {};
     const diagramsMetadata = [];
     
-    for (const diagram of diagrams) {
+    for (let i = 0; i < diagrams.length; i++) {
+      const diagram = diagrams[i];
       try {
         // Download diagram images (both EN and AR) to local storage
         const localPaths = await downloadDiagramImage(diagram);
@@ -502,6 +507,9 @@ export const downloadAllDiagrams = async () => {
           localPathAr: null,
           downloadError: error.message
         });
+      }
+      if (typeof onProgress === 'function' && diagrams.length > 0) {
+        onProgress((i + 1) / diagrams.length);
       }
     }
     

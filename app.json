@@ -19,7 +19,7 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true,
+      "supportsTablet": false,
       "bundleIdentifier": "com.grc.starvation.toolkit",
       "buildNumber": "1",
       "infoPlist": {
@@ -52,16 +52,7 @@
       "policy": "appVersion"
     },
     "plugins": [
-      "expo-localization",
-      [
-        "expo-media-library",
-        {
-          "photosPermission": "Allow $(PRODUCT_NAME) to save diagrams and templates to your photo library.",
-          "savePhotosPermission": "Allow $(PRODUCT_NAME) to save diagrams and templates to your photo library.",
-          "isAccessMediaLocationEnabled": false,
-          "granularPermissions": []
-        }
-      ]
+      "expo-localization"
     ]
   }
 }
