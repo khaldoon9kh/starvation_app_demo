@@ -6,12 +6,28 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_FIREBASE_API_KEY": "AIzaSyCdH5lZicu0We3LBMi54aFISFL3LFfswxM",
+        "EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN": "starvation-app.firebaseapp.com",
+        "EXPO_PUBLIC_FIREBASE_PROJECT_ID": "starvation-app",
+        "EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET": "starvation-app.firebasestorage.app",
+        "EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID": "804869298527",
+        "EXPO_PUBLIC_FIREBASE_APP_ID": "1:804869298527:web:ecb1b0e7808772f6b13eea"
+      }
     },
     "preview": {
       "distribution": "internal",
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_FIREBASE_API_KEY": "AIzaSyCdH5lZicu0We3LBMi54aFISFL3LFfswxM",
+        "EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN": "starvation-app.firebaseapp.com",
+        "EXPO_PUBLIC_FIREBASE_PROJECT_ID": "starvation-app",
+        "EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET": "starvation-app.firebasestorage.app",
+        "EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID": "804869298527",
+        "EXPO_PUBLIC_FIREBASE_APP_ID": "1:804869298527:web:ecb1b0e7808772f6b13eea"
       }
     },
     "production": {
@@ -23,12 +39,26 @@
         "image": "macos-sequoia-15.6-xcode-26.0"
       },
       "env": {
-        "EX_UPDATES_NATIVE_DEBUG": "0"
+        "EX_UPDATES_NATIVE_DEBUG": "0",
+        "EXPO_PUBLIC_FIREBASE_API_KEY": "AIzaSyCdH5lZicu0We3LBMi54aFISFL3LFfswxM",
+        "EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN": "starvation-app.firebaseapp.com",
+        "EXPO_PUBLIC_FIREBASE_PROJECT_ID": "starvation-app",
+        "EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET": "starvation-app.firebasestorage.app",
+        "EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID": "804869298527",
+        "EXPO_PUBLIC_FIREBASE_APP_ID": "1:804869298527:web:ecb1b0e7808772f6b13eea"
       }
     },
     "apk": {
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_FIREBASE_API_KEY": "AIzaSyCdH5lZicu0We3LBMi54aFISFL3LFfswxM",
+        "EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN": "starvation-app.firebaseapp.com",
+        "EXPO_PUBLIC_FIREBASE_PROJECT_ID": "starvation-app",
+        "EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET": "starvation-app.firebasestorage.app",
+        "EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID": "804869298527",
+        "EXPO_PUBLIC_FIREBASE_APP_ID": "1:804869298527:web:ecb1b0e7808772f6b13eea"
       }
     }
   },

@@ -159,8 +159,15 @@
     "loading": "Loading...",
     "error": "Error",
     "retry": "Retry",
+    "tryAgain": "Try Again",
     "cancel": "Cancel",
     "ok": "OK"
+  },
+  "error": {
+    "noInternetTitle": "No Internet Connection",
+    "noInternetMessage": "Please check your Wi-Fi or mobile data and try again.",
+    "genericTitle": "Something Went Wrong",
+    "genericMessage": "An unexpected error occurred. Please try again."
   },
   "diagrams": {
     "noDiagrams": "No diagrams available",

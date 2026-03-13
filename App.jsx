@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, createContext, useContext } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View, Text, TouchableOpacity, I18nManager, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import Icon from '@expo/vector-icons/MaterialIcons';
@@ -33,10 +33,45 @@ import SplashScreen from './src/screens/SplashScreen';
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
+// Context that carries the currently-active leaf route name to any consumer (e.g. AppHeader)
+const ActiveRouteContext = createContext('Home');
+
+// Recursively walk navigation state to find the name of the currently visible leaf screen
+const getActiveRouteName = (state) => {
+  if (!state?.routes) return null;
+  const route = state.routes[state.index ?? 0];
+  if (route?.state) return getActiveRouteName(route.state);
+  return route?.name ?? null;
+};
+
+// Map every route name to its i18n translation key
+const ROUTE_TITLE_MAP = {
+  Home:               'home',
+  LibraryMain:        'library',
+  Article:            'subcategory',
+  Diagrams:           'diagramsLabel',
+  Glossary:           'glossary',
+  Saved:              'bookmarks',
+  Templates:      'templatesTab',
+  TemplatesMain:  'templatesTab',
+  CategoryTemplates:  'categories',
+  About:              'about',
+  Contact:            'contact',
+  Copyright:          'copyright',
+  Disclaimer:         'disclaimer',
+  Settings:           'settings',
+  UserGuide:          'userguide',
+};
+
 // Header component
-const AppHeader = ({title, showSearch = true, showMenu = true, onMenuPress, onSearchPress}) => {
+const AppHeader = ({showSearch = true, showMenu = true, onMenuPress, onSearchPress}) => {
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === 'ar';
+
+  // Read the currently-active route name from context (set at NavigationContainer level)
+  const activeRouteName = useContext(ActiveRouteContext);
+  const titleKey = ROUTE_TITLE_MAP[activeRouteName];
+  const title = titleKey ? t(titleKey) : t('app.name');
   
   const toggleLanguage = () => {
     const newLang = i18n.language === 'ar' ? 'en' : 'ar';
@@ -84,6 +119,14 @@ const AppHeader = ({title, showSearch = true, showMenu = true, onMenuPress, onSe
               />
             </TouchableOpacity>
           )}
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={[
+            styles.arabicText,
+            { textAlign: isRTL ? 'right' : 'center' }
+          ]}>
+            {title}
+          </Text>
         </View>
         <TouchableOpacity onPress={toggleLanguage}>
           <Text style={styles.languageText}>
@@ -237,11 +280,29 @@ const RootNavigator = () => {
   );
 };
 
+const navigationRef = createNavigationContainerRef();
+
 const App = () => {
+  // 'Home' is the correct default — it's the first tab shown inside MainTabs
+  const [activeRoute, setActiveRoute] = useState('Home');
+
   return (
-    <NavigationContainer>
-      <RootNavigator />
-    </NavigationContainer>
+    <ActiveRouteContext.Provider value={activeRoute}>
+      <NavigationContainer
+        ref={navigationRef}
+        onReady={() => {
+          // Fires once the navigator is fully mounted with all nested state
+          const name = getActiveRouteName(navigationRef.getRootState());
+          if (name) setActiveRoute(name);
+        }}
+        onStateChange={(state) => {
+          const name = getActiveRouteName(state);
+          if (name) setActiveRoute(name);
+        }}
+      >
+        <RootNavigator />
+      </NavigationContainer>
+    </ActiveRouteContext.Provider>
   );
 };
 

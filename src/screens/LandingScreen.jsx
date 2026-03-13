@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
-  Alert,
+  Modal,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useTranslation } from 'react-i18next';
@@ -27,18 +27,54 @@ const LandingScreen = ({ navigation }) => {
   const [downloadPhase, setDownloadPhase] = useState('idle');
   const [progress, setProgress] = useState(0);      // 0-100
   const [progressLabel, setProgressLabel] = useState('');
+  const [errorModal, setErrorModal] = useState({ visible: false, title: '', message: '', isNetworkError: false });
 
   useEffect(() => {
     fetchSizeEstimate();
   }, []);
+
+  // Detects whether an error is caused by no internet connection
+  const isNetworkError = (e) => {
+    if (!e) return false;
+    const code = e?.code || '';
+    const msg  = (e?.message || '').toLowerCase();
+    return (
+      code === 'unavailable' ||
+      code === 'network-request-failed' ||
+      msg.includes('network') ||
+      msg.includes('offline') ||
+      msg.includes('internet') ||
+      msg.includes('connection') ||
+      msg.includes('failed to fetch') ||
+      msg.includes('network request failed') ||
+      (e instanceof TypeError && msg.includes('fetch'))
+    );
+  };
+
+  const showErrorModal = (e) => {
+    const networkError = isNetworkError(e);
+    setErrorModal({
+      visible: true,
+      isNetworkError: networkError,
+      title: networkError
+        ? t('error.noInternetTitle', 'No Internet Connection')
+        : t('error.genericTitle', 'Something Went Wrong'),
+      message: networkError
+        ? t('error.noInternetMessage', 'Please check your Wi-Fi or mobile data and try again.')
+        : t('error.genericMessage', 'An unexpected error occurred. Please try again.'),
+    });
+  };
 
   const fetchSizeEstimate = async () => {
     setFetchingSize(true);
     try {
       const estimate = await estimateDownloadSize();
       setSizeEstimate(estimate);
-    } catch {
+    } catch (e) {
       setSizeEstimate({ bytes: 0, hasSize: false });
+      // Only show the modal if the size fetch fails — it means Firebase is unreachable.
+      // The user can still press Download and will get a clearer error then.
+      showErrorModal(e);
     } finally {
       setFetchingSize(false);
     }
@@ -93,13 +129,9 @@ const LandingScreen = ({ navigation }) => {
       const rootNavigation = navigation.getParent() || navigation;
       rootNavigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
     } catch (error) {
-      console.error('Download error:', error);
       setDownloadPhase('idle');
       setProgress(0);
-      Alert.alert(
-        t('common.error', 'Error'),
-        t('settingsScreen.downloadError', 'Failed to download content. Please check your internet connection and try again.')
-      );
+      showErrorModal(error);
     }
   };
 
@@ -107,6 +139,39 @@ const LandingScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
+
+      {/* ── No-internet / Error Modal ────────────────────────── */}
+      <Modal
+        visible={errorModal.visible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setErrorModal(m => ({ ...m, visible: false }))}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <View style={styles.modalIconRow}>
+              <Icon
+                name={errorModal.isNetworkError ? 'wifi-off' : 'error-outline'}
+                size={42}
+                color={errorModal.isNetworkError ? '#FF9800' : '#f44336'}
+              />
+            </View>
+            <Text style={styles.modalTitle}>{errorModal.title}</Text>
+            <Text style={styles.modalMessage}>{errorModal.message}</Text>
+            <TouchableOpacity
+              style={styles.modalBtn}
+              onPress={() => {
+                setErrorModal(m => ({ ...m, visible: false }));
+                fetchSizeEstimate();
+              }}
+              activeOpacity={0.8}
+            >
+              <Icon name="refresh" size={18} color="#fff" style={{ marginRight: 8 }} />
+              <Text style={styles.modalBtnText}>{t('common.tryAgain', 'Try Again')}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       {/* ── Top Navigation Bar ───────────────────────────────── */}
       <View style={[styles.topBar, isRTL && styles.topBarRTL]}>
@@ -206,6 +271,8 @@ const LandingScreen = ({ navigation }) => {
                 </>
               )}
             </View>
+
+
 
             <TouchableOpacity
               style={[styles.downloadBtn, fetchingSize && styles.downloadBtnDisabled]}
@@ -514,6 +581,62 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#795548',
     flex: 1,
+  },
+
+  // ── Error / No-internet modal ──────────────────────────────
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 32,
+  },
+  modalCard: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 28,
+    width: '100%',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.18,
+    shadowRadius: 16,
+    elevation: 12,
+  },
+  modalIconRow: {
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#222',
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  modalMessage: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 24,
+  },
+  modalBtn: {
+    backgroundColor: '#4CAF50',
+    paddingVertical: 13,
+    paddingHorizontal: 32,
+    borderRadius: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: '#4CAF50',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  modalBtnText: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: 'bold',
   },
 
   // ── Bottom info ────────────────────────────────────────────

@@ -821,47 +821,44 @@ export const getFallbackTemplates = () => [
  * Sizes are read from Firestore metadata fields — no files are fetched.
  */
 export const estimateDownloadSize = async () => {
-  try {
-    const [templates, diagrams] = await Promise.all([
-      getTemplates(),
-      getDiagrams()
-    ]);
+  // NOTE: errors are intentionally NOT caught here — let the caller handle them
+  // so they can surface the error to the user (e.g. on-screen debug panel).
+  const [templates, diagrams] = await Promise.all([
+    getTemplates(),
+    getDiagrams()
+  ]);
 
-    let totalBytes = 0;
-    let hasSize = false;
+  let totalBytes = 0;
+  let hasSize = false;
 
-    templates.forEach(template => {
-      if (template.pdfSizeEn && typeof template.pdfSizeEn === 'number') {
-        totalBytes += template.pdfSizeEn;
-        hasSize = true;
-      }
-      if (template.pdfSizeAr && typeof template.pdfSizeAr === 'number') {
-        totalBytes += template.pdfSizeAr;
-        hasSize = true;
-      }
-    });
+  templates.forEach(template => {
+    if (template.pdfSizeEn && typeof template.pdfSizeEn === 'number') {
+      totalBytes += template.pdfSizeEn;
+      hasSize = true;
+    }
+    if (template.pdfSizeAr && typeof template.pdfSizeAr === 'number') {
+      totalBytes += template.pdfSizeAr;
+      hasSize = true;
+    }
+  });
 
-    diagrams.forEach(diagram => {
-      if (diagram.imageSizeEn && typeof diagram.imageSizeEn === 'number') {
-        totalBytes += diagram.imageSizeEn;
-        hasSize = true;
-      }
-      if (diagram.imageSizeAr && typeof diagram.imageSizeAr === 'number') {
-        totalBytes += diagram.imageSizeAr;
-        hasSize = true;
-      }
-    });
+  diagrams.forEach(diagram => {
+    if (diagram.imageSizeEn && typeof diagram.imageSizeEn === 'number') {
+      totalBytes += diagram.imageSizeEn;
+      hasSize = true;
+    }
+    if (diagram.imageSizeAr && typeof diagram.imageSizeAr === 'number') {
+      totalBytes += diagram.imageSizeAr;
+      hasSize = true;
+    }
+  });
 
-    return {
-      bytes: totalBytes,
-      hasSize,
-      templatesCount: templates.length,
-      diagramsCount: diagrams.length,
-    };
-  } catch (error) {
-    console.error('Error estimating download size:', error);
-    return { bytes: 0, hasSize: false, templatesCount: 0, diagramsCount: 0 };
-  }
+  return {
+    bytes: totalBytes,
+    hasSize,
+    templatesCount: templates.length,
+    diagramsCount: diagrams.length,
+  };
 };
 
 /**

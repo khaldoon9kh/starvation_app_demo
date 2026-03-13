@@ -20,9 +20,11 @@
     ],
     "ios": {
       "supportsTablet": false,
+      "requireFullScreen": true,
       "bundleIdentifier": "com.grc.starvation.toolkit",
       "buildNumber": "1",
       "infoPlist": {
+        "UIDeviceFamily": [1],
         "NSPhotoLibraryUsageDescription": "This app needs access to your photo library to save diagrams and templates.",
         "NSPhotoLibraryAddUsageDescription": "This app needs permission to save images to your photo library.",
         "ITSAppUsesNonExemptEncryption": false

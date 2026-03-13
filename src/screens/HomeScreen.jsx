@@ -144,8 +144,9 @@ const arabicContent = `مرحبًا بك في **تطبيق المساءلة عن
     <View style={styles.container}>
       <ScrollView>
         <View style={styles.content}>
-        <Text style={styles.title}>{t('homeScreen.overview')}</Text>
-        
+          <View style={styles.titleContainer}>
+            <Text style={styles.title}>{t('homeScreen.overview')}</Text>
+          </View>
         {/* Data Status Section */}
         <View style={styles.dataStatusContainer}>
           <Text style={styles.sectionTitle}>{t('homeScreen.contentStatus')}</Text>
@@ -433,11 +434,14 @@ const styles = StyleSheet.create({
   content: {
     padding: 20,
   },
+  titleContainer: {
+    display: 'flex',
+    alignItems: 'center'
+  },
   title: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#000',
-    marginBottom: 30,
   },
   welcomeText: {
     fontSize: 16,
