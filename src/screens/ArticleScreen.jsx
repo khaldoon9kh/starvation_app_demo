@@ -269,7 +269,7 @@ const ArticleScreen = ({route, navigation}) => {
     } catch (error) {
       console.error('Error toggling bookmark:', error);
       Alert.alert(
-        t('error') || 'Error',
+        t('common.error') || 'Error',
         t('bookmark_error') || 'There was an error saving this article. Please try again.',
         [{ text: t('ok') || 'OK' }]
       );

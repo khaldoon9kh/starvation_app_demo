@@ -125,10 +125,7 @@ const SavedScreen = () => {
           styles.headerSection,
           { flexDirection: isRTL ? 'row-reverse' : 'row' }
         ]}>
-          <Text style={[
-            styles.title,
-            { textAlign: isRTL ? 'right' : 'left', flex: 1 }
-          ]}>
+          <Text style={[styles.title]}>
             {t('saved_items_title') || 'THESE ARE YOUR SAVED ITEMS'}
           </Text>
           {__DEV__ && bookmarks.length > 0 && (
@@ -253,9 +250,11 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   title: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
-    color: '#000',
+    color: '#4CAF50',
+    textAlign: 'center',
+    flex: 1,
   },
   debugButton: {
     padding: 8,

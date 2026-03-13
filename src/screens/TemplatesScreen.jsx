@@ -259,12 +259,12 @@ const TemplatesScreen = ({navigation}) => {
   }  return (
     <ScrollView style={[styles.container, isRTL && styles.containerRTL]}>
       <View style={styles.content}>
-        <Text style={[styles.title, isRTL && styles.titleRTL]}>
+        <Text style={[styles.title]}>
           {t('templates.title', 'All Templates and Checklists')}
         </Text>
-        <Text style={[styles.subtitle, isRTL && styles.subtitleRTL]}>
+        {/* <Text style={[styles.subtitle, isRTL && styles.subtitleRTL]}>
           {t('templates.categoriesSubtitle', 'Browse templates by category')}
-        </Text>
+        </Text> */}
         
         {categories.length === 0 ? (
           <View style={styles.emptyContainer}>
@@ -388,10 +388,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   title: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
-    color: '#000',
-    marginBottom: 5,
+    color: '#4CAF50',
+    textAlign: 'center',
+    flex: 1,
   },
   titleRTL: {
     textAlign: 'left',

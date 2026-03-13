@@ -3,8 +3,8 @@
   "library": "المكتبة",
   "saved": "المحفوظات",
   "templatesTab": "القوالب",
-  "english": "English",
-  "arabic": "العربية",
+  "english": "En",
+  "arabic": "عربي",
   "search": "بحث",
   "menu": "القائمة",
   "welcome": "مرحباً بكم في أدوات GRC لمكافحة التجويع",
@@ -191,5 +191,14 @@
     "glossaryTerms": "شروط المسرد",
     "diagrams": "الرسوم البيانية",
     "templates": "القوالب"
+  },
+  "libraryScreen": {
+    "title": "هذه مكتبة المحتوى الخاصة بك",
+    "loadingSubcategories": "جاري تحميل الفئات الفرعية...",
+    "errorSubcategories": "خطأ في تحميل الفئات الفرعية",
+    "loadingContent": "جاري تحميل محتوى المكتبة...",
+    "errorLoading": "خطأ في تحميل المحتوى",
+    "noContent": "لا يوجد محتوى متاح",
+    "noContentSub": "تحقق من اتصالك بالإنترنت وحاول مجدداً"
   }
 }

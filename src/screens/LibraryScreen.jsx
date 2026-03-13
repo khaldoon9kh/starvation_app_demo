@@ -16,12 +16,13 @@ import { useCategories, useSubcategories, useBookmarks } from '../hooks/useFireb
 // Component to render subcategories - moved outside to prevent re-creation
 const SubcategoriesList = ({ categoryId, isRTL, i18n, navigation, expandedSubcategories, toggleSubcategory, isBookmarked }) => {
   const { subcategories, loading, error } = useSubcategories(categoryId);
+  const { t } = useTranslation();
 
   if (loading) {
     return (
       <View style={styles.loadingSubcategories}>
         <ActivityIndicator size="small" color="#4CAF50" />
-        <Text style={styles.loadingText}>Loading subcategories...</Text>
+        <Text style={styles.loadingText}>{t('libraryScreen.loadingSubcategories')}</Text>
       </View>
     );
   }
@@ -29,7 +30,7 @@ const SubcategoriesList = ({ categoryId, isRTL, i18n, navigation, expandedSubcat
   if (error) {
     return (
       <View style={styles.errorSubcategories}>
-        <Text style={styles.errorText}>Error loading subcategories</Text>
+        <Text style={styles.errorText}>{t('libraryScreen.errorSubcategories')}</Text>
       </View>
     );
   }
@@ -224,7 +225,7 @@ const LibraryScreen = ({navigation}) => {
     return (
       <View style={styles.centerContainer}>
         <ActivityIndicator size="large" color="#4CAF50" />
-        <Text style={styles.loadingText}>Loading library content...</Text>
+        <Text style={styles.loadingText}>{t('libraryScreen.loadingContent')}</Text>
       </View>
     );
   }
@@ -232,10 +233,10 @@ const LibraryScreen = ({navigation}) => {
   if (categoriesError && categories.length === 0) {
     return (
       <View style={styles.centerContainer}>
-        <Text style={styles.errorText}>Error loading content</Text>
+        <Text style={styles.errorText}>{t('libraryScreen.errorLoading')}</Text>
         <Text style={styles.errorSubText}>{categoriesError}</Text>
         <TouchableOpacity style={styles.retryButton} onPress={onRefresh}>
-          <Text style={styles.retryButtonText}>Retry</Text>
+          <Text style={styles.retryButtonText}>{t('common.retry')}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -299,8 +300,8 @@ const LibraryScreen = ({navigation}) => {
       }>
       <View style={styles.content}>
         <View style={styles.headerTextContainer}>
-          <Text style={[styles.headerText, isRTL && styles.rtlText]}>
-            {i18n.language === 'ar' ? 'هذه مكتبة التجويع الخاصة بك' : 'This is your Starvation Library'}
+          <Text style={[styles.headerText]}>
+            {t('libraryScreen.title')}
           </Text>
         </View>
 
@@ -331,7 +332,7 @@ const LibraryScreen = ({navigation}) => {
                 style={isRTL ? { marginLeft: 10 } : { marginRight: 10 }}
               />
               <Text style={[styles.sectionTitle, isRTL && styles.rtlText]}>
-                {i18n.language === 'ar' ? 'الرسوم التوضيحية' : 'Diagrams'}
+                {t('diagramsLabel')}
               </Text>
             </View>
             <Icon 
@@ -369,7 +370,7 @@ const LibraryScreen = ({navigation}) => {
                 style={isRTL ? { marginLeft: 10 } : { marginRight: 10 }}
               />
               <Text style={[styles.sectionTitle, isRTL && styles.rtlText]}>
-                {i18n.language === 'ar' ? 'المسرد' : 'Glossary'}
+                {t('glossary')}
               </Text>
             </View>
             <Icon 
@@ -384,8 +385,8 @@ const LibraryScreen = ({navigation}) => {
         
         {categories.length === 0 && !categoriesLoading && (
           <View style={styles.emptyContainer}>
-            <Text style={[styles.emptyText, isRTL && styles.rtlText]}>No content available</Text>
-            <Text style={[styles.emptySubText, isRTL && styles.rtlText]}>Check your internet connection and try again</Text>
+            <Text style={[styles.emptyText, isRTL && styles.rtlText]}>{t('libraryScreen.noContent')}</Text>
+            <Text style={[styles.emptySubText, isRTL && styles.rtlText]}>{t('libraryScreen.noContentSub')}</Text>
           </View>
         )}
       </View>

@@ -144,79 +144,76 @@ const arabicContent = `مرحبًا بك في **تطبيق المساءلة عن
     <View style={styles.container}>
       <ScrollView>
         <View style={styles.content}>
-          <View style={styles.titleContainer}>
+          {/* <View style={styles.titleContainer}>
             <Text style={styles.title}>{t('homeScreen.overview')}</Text>
-          </View>
-        {/* Data Status Section */}
-        <View style={styles.dataStatusContainer}>
-          <Text style={styles.sectionTitle}>{t('homeScreen.contentStatus')}</Text>
-          
-          {isLoading && (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="small" color="#4CAF50" />
-              <Text style={styles.loadingText}>Loading content from Firebase...</Text>
-            </View>
-          )}
-          
-          {hasError && (
-            <View style={styles.errorContainer}>
-              <Text style={styles.errorText}>⚠️ {error}</Text>
-              <Text style={styles.errorSubText}>
-                {isOnline ? 'Using cached content' : 'Check your internet connection'}
-              </Text>
-            </View>
-          )}
-          
-          {!isLoading && !hasError && (
-            <View style={styles.successContainer}>
-              <Text style={styles.successText}>✅ {t('homeScreen.contentLoaded')}</Text>
-              {lastUpdated && (
-                <Text style={styles.lastUpdatedText}>
-                  Last updated: {new Date(lastUpdated).toLocaleString()}
+          </View> */}
+          {/* Data Status Section */}
+          <View style={styles.dataStatusContainer}>
+            {/* <Text style={styles.sectionTitle}>{t('homeScreen.contentStatus')}</Text> */}
+            
+            {isLoading && (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="small" color="#4CAF50" />
+                <Text style={styles.loadingText}>Loading content from Firebase...</Text>
+              </View>
+            )}
+            
+            {hasError && (
+              <View style={styles.errorContainer}>
+                <Text style={styles.errorText}>⚠️ {error}</Text>
+                <Text style={styles.errorSubText}>
+                  {isOnline ? 'Using cached content' : 'Check your internet connection'}
                 </Text>
-              )}
-            </View>
-          )}
-        </View>
+              </View>
+            )}
+            
+            {!isLoading && !hasError && (
+              <View style={styles.successContainer}>
+                <Text style={styles.successText}>✅ {t('homeScreen.contentLoaded')}</Text>
+                {lastUpdated && (
+                  <Text style={styles.lastUpdatedText}>
+                    Last updated: {new Date(lastUpdated).toLocaleString()}
+                  </Text>
+                )}
+              </View>
+            )}
+          </View>
 
-        {/* Statistics Section */}
-        <View style={styles.statsContainer}>
-          <Text style={styles.sectionTitle}>{t('homeScreen.contentStatistics')}</Text>
-          
-          <View style={styles.statsGrid}>
-            <View style={styles.statItem}>
-              <Text style={styles.statNumber}>{stats.categories}</Text>
-              <Text style={styles.statLabel}>{t('homeScreen.categories')}</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statNumber}>{stats.subcategories}</Text>
-              <Text style={styles.statLabel}>{t('homeScreen.subcategories')}</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statNumber}>{stats.glossaryTerms}</Text>
-              <Text style={styles.statLabel}>{t('homeScreen.glossaryTerms')}</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statNumber}>{stats.diagrams}</Text>
-              <Text style={styles.statLabel}>{t('homeScreen.diagrams')}</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statNumber}>{stats.templates}</Text>
-              <Text style={styles.statLabel}>{t('homeScreen.templates')}</Text>
+          {/* Statistics Section */}
+          <View style={styles.statsContainer}>
+            <Text style={styles.sectionTitle}>{t('homeScreen.contentStatistics')}</Text>
+            
+            <View style={styles.statsGrid}>
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>{stats.categories}</Text>
+                <Text style={styles.statLabel}>{t('homeScreen.categories')}</Text>
+              </View>
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>{stats.subcategories}</Text>
+                <Text style={styles.statLabel}>{t('homeScreen.subcategories')}</Text>
+              </View>
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>{stats.glossaryTerms}</Text>
+                <Text style={styles.statLabel}>{t('homeScreen.glossaryTerms')}</Text>
+              </View>
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>{stats.diagrams}</Text>
+                <Text style={styles.statLabel}>{t('homeScreen.diagrams')}</Text>
+              </View>
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>{stats.templates}</Text>
+                <Text style={styles.statLabel}>{t('homeScreen.templates')}</Text>
+              </View>
             </View>
           </View>
+          
+          <Markdown 
+            style={i18n.language === 'ar' ? {...markdownStyles, ...rtlMarkdownStyles} : markdownStyles}
+            onLinkPress={handleLinkPress}
+          >
+            {processContentWithTerms(content)}
+          </Markdown>
         </View>
-        
-        <Markdown 
-          style={i18n.language === 'ar' ? {...markdownStyles, ...rtlMarkdownStyles} : markdownStyles}
-          onLinkPress={handleLinkPress}
-        >
-          {processContentWithTerms(content)}
-        </Markdown>
-        
-        
-
-      </View>
     </ScrollView>
 
       <Modal
@@ -432,7 +429,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
   },
   content: {
-    padding: 20,
+    paddingHorizontal: 20,
   },
   titleContainer: {
     display: 'flex',
@@ -468,9 +465,9 @@ const styles = StyleSheet.create({
   },
   // Firebase integration styles
   dataStatusContainer: {
-    // marginTop: 20,
-    padding: 15,
-    backgroundColor: '#f9f9f9',
+    marginTop: 10,
+    padding: 2,
+    backgroundColor: '#fff',
     borderRadius: 8,
   },
   loadingContainer: {
@@ -510,7 +507,7 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
   statsContainer: {
-    marginTop: 20,
+    marginTop: 10,
     padding: 15,
     backgroundColor: '#fff',
     borderRadius: 8,

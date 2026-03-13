@@ -3,8 +3,8 @@
   "library": "Library",
   "saved": "Saved",
   "templatesTab": "Templates",
-  "english": "English",
-  "arabic": "العربية",
+  "english": "En",
+  "arabic": "عربي",
   "search": "Search",
   "menu": "Menu",
   "welcome": "Welcome to GRC Starvation Toolkit",
@@ -58,7 +58,6 @@
   "article_saved_message": "This article has been added to your saved items.",
   "ok": "OK",
   "view_saved": "View Saved",
-  "error": "Error",
   "bookmark_error": "There was an error saving this article. Please try again.",
   "templates": {
     "title": "All Templates and Checklists",
@@ -194,5 +193,14 @@
     "glossaryTerms": "Glossary Terms",
     "diagrams": "Diagrams",
     "templates": "Templates"
+  },
+  "libraryScreen": {
+    "title": "This is your Content Library",
+    "loadingSubcategories": "Loading subcategories...",
+    "errorSubcategories": "Error loading subcategories",
+    "loadingContent": "Loading library content...",
+    "errorLoading": "Error loading content",
+    "noContent": "No content available",
+    "noContentSub": "Check your internet connection and try again"
   }
 }

@@ -98,7 +98,7 @@ const AppHeader = ({showSearch = true, showMenu = true, onMenuPress, onSearchPre
               <Icon 
                 name="menu" 
                 size={24} 
-                color="#4CAF50" 
+                color="#f5f5f5" 
                 style={[
                   styles.icon,
                   isRTL ? { marginRight: 15, marginLeft: 0 } : { marginLeft: 15, marginRight: 0 }
@@ -111,7 +111,7 @@ const AppHeader = ({showSearch = true, showMenu = true, onMenuPress, onSearchPre
               <Icon 
                 name="search" 
                 size={24} 
-                color="#4CAF50" 
+                color="#f5f5f5" 
                 style={[
                   styles.icon,
                   isRTL ? { marginRight: 15, marginLeft: 0 } : { marginLeft: 15, marginRight: 0 }
@@ -120,11 +120,8 @@ const AppHeader = ({showSearch = true, showMenu = true, onMenuPress, onSearchPre
             </TouchableOpacity>
           )}
         </View>
-        <View style={{ flex: 1 }}>
-          <Text style={[
-            styles.arabicText,
-            { textAlign: isRTL ? 'right' : 'center' }
-          ]}>
+        <View style={styles.headerTitleContainer} pointerEvents="none">
+          <Text style={styles.arabicText}>
             {title}
           </Text>
         </View>
@@ -312,9 +309,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
   },
   header: {
-    backgroundColor: '#fff',
+    backgroundColor: '#4CAF50',
     paddingTop: 40,
-    paddingBottom: 10,
+    // paddingBottom: 10,
     elevation: 3,
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
@@ -325,15 +322,28 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
+    // backgroundColor: 'red',
+    marginTop: 10,
+    paddingBottom: 10,
   },
   arabicText: {
-    fontSize: 16,
-    color: '#4CAF50',
+    fontSize: 20,
+    color: '#f5f5f5',
     fontWeight: '500',
+    textAlign: 'center',
+    // backgroundColor:"red"
+  },
+  headerTitleContainer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    paddingBottom: 10,
+    // backgroundColor: 'red',
   },
   languageText: {
     fontSize: 16,
-    color: '#4CAF50',
+    color: '#f5f5f5',
     fontWeight: '500',
   },
   loadingContainer: {
@@ -358,7 +368,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#e0e0e0',
     height: 60,
-    paddingBottom: 8,
+    paddingBottom: 15,
     paddingTop: 8,
   },
 });
