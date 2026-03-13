@@ -2,7 +2,7 @@
   "expo": {
     "name": "GRC Starvation Toolkit",
     "slug": "grc-starvation-toolkit",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "icon": "./assets/images/icon-1024.png",
@@ -22,7 +22,7 @@
       "supportsTablet": false,
       "requireFullScreen": true,
       "bundleIdentifier": "com.grc.starvation.toolkit",
-      "buildNumber": "1",
+      "buildNumber": "2",
       "infoPlist": {
         "UIDeviceFamily": [1],
         "NSPhotoLibraryUsageDescription": "This app needs access to your photo library to save diagrams and templates.",
@@ -33,14 +33,12 @@
     "android": {
       "package": "com.grc.starvation.toolkit",
       "versionCode": 2,
-      "permissions": [
-        "WRITE_EXTERNAL_STORAGE"
-      ],
       "blockedPermissions": [
         "READ_MEDIA_IMAGES",
         "READ_MEDIA_VIDEO",
         "READ_MEDIA_AUDIO",
-        "READ_EXTERNAL_STORAGE"
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
       ]
     },
     "newArchEnabled": true,
