@@ -103,8 +103,14 @@ const SearchModal = ({ visible, onClose }) => {
       // Navigate to library to show the category
       navigation.navigate('Library');
     } else if (type === 'glossary') {
-      // Navigate to library (glossary terms are shown there)
+      // Navigate to GlossaryScreen and highlight the specific term
       navigation.navigate('Library');
+      setTimeout(() => {
+        navigation.navigate('Library', {
+          screen: 'Glossary',
+          params: { highlightTermId: item.id }
+        });
+      }, 50);
     } else if (type === 'template') {
       // Navigate to the specific template category
       const category = i18n.language === 'ar' 
