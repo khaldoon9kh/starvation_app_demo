@@ -34,13 +34,6 @@ const SearchModal = ({ visible, onClose }) => {
     return () => clearTimeout(timeoutId);
   }, [searchText, search, i18n.language]);
 
-  // Clear search when modal closes
-  useEffect(() => {
-    if (!visible) {
-      setSearchText('');
-      search('', i18n.language);
-    }
-  }, [visible, search, i18n.language]);
 
   // Calculate total results
   const totalResults = searchResults.categories.length + 
@@ -368,7 +361,15 @@ const SearchModal = ({ visible, onClose }) => {
               autoFocus={true}
               returnKeyType="search"
             />
-            <TouchableOpacity 
+            {searchText.length > 0 && (
+              <TouchableOpacity
+                style={styles.clearButton}
+                onPress={() => setSearchText('')}
+              >
+                <Icon name="backspace" size={20} color="#999" />
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity
               style={styles.closeButton}
               onPress={onClose}
             >
@@ -519,6 +520,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 20,
     paddingHorizontal: 15,
+  },
+  clearButton: {
+    padding: 8,
   },
   closeButton: {
     padding: 8,
