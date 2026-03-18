@@ -94,27 +94,27 @@ const AppHeader = ({showSearch = true, showMenu = true, onMenuPress, onSearchPre
           { flexDirection: isRTL ? 'row-reverse' : 'row' }
         ]}>
           {showMenu && (
-            <TouchableOpacity onPress={onMenuPress}>
+            <TouchableOpacity style={styles.iconsButton} onPress={onMenuPress}>
               <Icon 
                 name="menu" 
                 size={24} 
                 color="#f5f5f5" 
                 style={[
                   styles.icon,
-                  isRTL ? { marginRight: 15, marginLeft: 0 } : { marginLeft: 15, marginRight: 0 }
+                  // isRTL ? { marginRight: 15, marginLeft: 0 } : { marginLeft: 15, marginRight: 0 }
                 ]} 
               />
             </TouchableOpacity>
           )}
           {showSearch && (
-            <TouchableOpacity onPress={onSearchPress}>
+            <TouchableOpacity style={styles.iconsButton} onPress={onSearchPress}>
               <Icon 
                 name="search" 
                 size={24} 
                 color="#f5f5f5" 
                 style={[
                   styles.icon,
-                  isRTL ? { marginRight: 15, marginLeft: 0 } : { marginLeft: 15, marginRight: 0 }
+                  // isRTL ? { marginRight: 15, marginLeft: 0 } : { marginLeft: 15, marginRight: 0 }
                 ]} 
               />
             </TouchableOpacity>
@@ -125,7 +125,7 @@ const AppHeader = ({showSearch = true, showMenu = true, onMenuPress, onSearchPre
             {title}
           </Text>
         </View>
-        <TouchableOpacity onPress={toggleLanguage}>
+        <TouchableOpacity style={styles.languageButton} onPress={toggleLanguage}>
           <Text style={styles.languageText}>
             {i18n.language === 'ar' ? t('english') : t('arabic')}
           </Text>
@@ -324,7 +324,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     // backgroundColor: 'red',
     marginTop: 10,
-    paddingBottom: 10,
+    // paddingBottom: 10,
+  },
+  languageButton: {
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    marginHorizontal: 5,
+  },
+  iconsButton: {
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+    marginHorizontal: 2,
   },
   arabicText: {
     fontSize: 20,
@@ -339,7 +349,7 @@ const styles = StyleSheet.create({
     right: 0,
     alignItems: 'center',
     paddingBottom: 10,
-    // backgroundColor: 'red',
+    // backgroundColor: 'blue',
   },
   languageText: {
     fontSize: 16,
