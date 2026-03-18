@@ -130,8 +130,14 @@ const SearchModal = ({ visible, onClose }) => {
         navigation.navigate('Templates');
       }
     } else if (type === 'diagram') {
-      // Diagrams are shown in articles, so just go to library
+      // Navigate to the DiagramsScreen and highlight the specific diagram
       navigation.navigate('Library');
+      setTimeout(() => {
+        navigation.navigate('Library', {
+          screen: 'Diagrams',
+          params: { highlightDiagramId: item.id }
+        });
+      }, 50);
     }
   };
 
