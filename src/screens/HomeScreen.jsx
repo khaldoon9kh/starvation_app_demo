@@ -18,6 +18,7 @@ import { useFirebaseData, useDataStatus, useGlossary } from '../hooks/useFirebas
 
 const HomeScreen = () => {
   const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === 'ar';
   const { categories, subcategories, glossaryTerms, diagrams, templates } = useFirebaseData();
   const { isLoading, hasError, error, isOnline, lastUpdated } = useDataStatus();
   const { glossaryTerms: glossaryTermsFromHook } = useGlossary();
@@ -152,26 +153,26 @@ const arabicContent = `مرحبًا بك في **تطبيق المساءلة عن
             {/* <Text style={styles.sectionTitle}>{t('homeScreen.contentStatus')}</Text> */}
             
             {isLoading && (
-              <View style={styles.loadingContainer}>
+              <View style={[styles.loadingContainer, isRTL && styles.rtlRow]}>
                 <ActivityIndicator size="small" color="#4CAF50" />
-                <Text style={styles.loadingText}>Loading content from Firebase...</Text>
+                <Text style={[styles.loadingText, isRTL && styles.rtlText]}>Loading content from Firebase...</Text>
               </View>
             )}
-            
+
             {hasError && (
               <View style={styles.errorContainer}>
-                <Text style={styles.errorText}>⚠️ {error}</Text>
-                <Text style={styles.errorSubText}>
+                <Text style={[styles.errorText, isRTL && styles.rtlText]}>⚠️ {error}</Text>
+                <Text style={[styles.errorSubText, isRTL && styles.rtlText]}>
                   {isOnline ? 'Using cached content' : 'Check your internet connection'}
                 </Text>
               </View>
             )}
-            
+
             {!isLoading && !hasError && (
               <View style={styles.successContainer}>
-                <Text style={styles.successText}>✅ {t('homeScreen.contentLoaded')}</Text>
+                <Text style={[styles.successText, isRTL && styles.rtlText]}>✅ {t('homeScreen.contentLoaded')}</Text>
                 {lastUpdated && (
-                  <Text style={styles.lastUpdatedText}>
+                  <Text style={[styles.lastUpdatedText, isRTL && styles.rtlText]}>
                     Last updated: {new Date(lastUpdated).toLocaleString()}
                   </Text>
                 )}
@@ -181,29 +182,31 @@ const arabicContent = `مرحبًا بك في **تطبيق المساءلة عن
 
           {/* Statistics Section */}
           <View style={styles.statsContainer}>
-            <Text style={styles.sectionTitle}>{t('homeScreen.contentStatistics')}</Text>
-            
-            <View style={styles.statsGrid}>
-              <View style={styles.statItem}>
-                <Text style={styles.statNumber}>{stats.categories}</Text>
-                <Text style={styles.statLabel}>{t('homeScreen.categories')}</Text>
-              </View>
-              <View style={styles.statItem}>
-                <Text style={styles.statNumber}>{stats.subcategories}</Text>
-                <Text style={styles.statLabel}>{t('homeScreen.subcategories')}</Text>
-              </View>
-              <View style={styles.statItem}>
-                <Text style={styles.statNumber}>{stats.glossaryTerms}</Text>
-                <Text style={styles.statLabel}>{t('homeScreen.glossaryTerms')}</Text>
-              </View>
-              <View style={styles.statItem}>
-                <Text style={styles.statNumber}>{stats.diagrams}</Text>
-                <Text style={styles.statLabel}>{t('homeScreen.diagrams')}</Text>
-              </View>
-              <View style={styles.statItem}>
-                <Text style={styles.statNumber}>{stats.templates}</Text>
-                <Text style={styles.statLabel}>{t('homeScreen.templates')}</Text>
-              </View>
+            <Text style={[styles.statsTitle, isRTL && styles.rtlText]}>{t('homeScreen.contentStatistics')}</Text>
+            <View style={[styles.statRow, isRTL && styles.statRowRTL]}>
+              <Icon name="folder" size={18} color="#2196F3" />
+              <Text style={[styles.statLabel, isRTL && styles.rtlText]}>{t('homeScreen.categories')}</Text>
+              <Text style={styles.statNumber}>{stats.categories}</Text>
+            </View>
+            <View style={[styles.statRow, isRTL && styles.statRowRTL]}>
+              <Icon name="article" size={18} color="#4CAF50" />
+              <Text style={[styles.statLabel, isRTL && styles.rtlText]}>{t('homeScreen.subcategories')}</Text>
+              <Text style={styles.statNumber}>{stats.subcategories}</Text>
+            </View>
+            <View style={[styles.statRow, isRTL && styles.statRowRTL]}>
+              <Icon name="menu-book" size={18} color="#F44336" />
+              <Text style={[styles.statLabel, isRTL && styles.rtlText]}>{t('homeScreen.glossaryTerms')}</Text>
+              <Text style={styles.statNumber}>{stats.glossaryTerms}</Text>
+            </View>
+            <View style={[styles.statRow, isRTL && styles.statRowRTL]}>
+              <Icon name="image" size={18} color="#9C27B0" />
+              <Text style={[styles.statLabel, isRTL && styles.rtlText]}>{t('homeScreen.diagrams')}</Text>
+              <Text style={styles.statNumber}>{stats.diagrams}</Text>
+            </View>
+            <View style={[styles.statRow, styles.statRowLast, isRTL && styles.statRowRTL]}>
+              <Icon name="description" size={18} color="#FF9800" />
+              <Text style={[styles.statLabel, isRTL && styles.rtlText]}>{t('homeScreen.templates')}</Text>
+              <Text style={styles.statNumber}>{stats.templates}</Text>
             </View>
           </View>
           
@@ -224,9 +227,9 @@ const arabicContent = `مرحبًا بك في **تطبيق المساءلة عن
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>
-                {i18n.language === 'ar'
+            <View style={[styles.modalHeader, isRTL && styles.rtlRow]}>
+              <Text style={[styles.modalTitle, isRTL && styles.rtlText]}>
+                {isRTL
                   ? selectedTerm?.termArabic || selectedTerm?.term || 'Term'
                   : selectedTerm?.term || selectedTerm?.termArabic || 'Term'
                 }
@@ -395,6 +398,29 @@ const rtlMarkdownStyles = {
   paragraph: {
     textAlign: 'right',
   },
+  heading1: {
+    textAlign: 'right',
+  },
+  heading2: {
+    textAlign: 'right',
+  },
+  heading3: {
+    textAlign: 'right',
+  },
+  heading4: {
+    textAlign: 'right',
+  },
+  list_item: {
+    flexDirection: 'row-reverse',
+  },
+  bullet_list_icon: {
+    marginRight: 0,
+    marginLeft: 8,
+  },
+  ordered_list_icon: {
+    marginRight: 0,
+    marginLeft: 8,
+  },
   bullet_list_content: {
     textAlign: 'right',
   },
@@ -477,6 +503,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginLeft: 8,
     color: '#666',
+    flex: 1,
   },
   errorContainer: {
     padding: 10,
@@ -516,29 +543,35 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 3,
   },
-  statsGrid: {
+  statsTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 12,
+  },
+  statRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  statItem: {
-    width: '48%',
     alignItems: 'center',
-    padding: 15,
-    backgroundColor: '#f5f5f5',
-    borderRadius: 8,
-    marginBottom: 10,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+    gap: 10,
   },
-  statNumber: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#4CAF50',
+  statRowLast: {
+    borderBottomWidth: 0,
+  },
+  statRowRTL: {
+    flexDirection: 'row-reverse',
   },
   statLabel: {
-    fontSize: 12,
-    color: '#666',
-    marginTop: 5,
-    textAlign: 'center',
+    flex: 1,
+    fontSize: 14,
+    color: '#555',
+  },
+  statNumber: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#4CAF50',
   },
   // Modal styles
   modalOverlay: {
@@ -583,6 +616,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 24,
     color: '#333',
+  },
+  rtlText: {
+    textAlign: 'right',
+  },
+  rtlRow: {
+    flexDirection: 'row-reverse',
   },
 });
 
