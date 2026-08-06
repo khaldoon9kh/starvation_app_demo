@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,23 +7,63 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   TextInput,
+  Animated,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useTranslation } from 'react-i18next';
 import { useGlossary } from '../hooks/useFirebaseData';
 
-const GlossaryScreen = ({ navigation }) => {
+const GlossaryScreen = ({ navigation, route }) => {
   const { t, i18n } = useTranslation();
   const { glossaryTerms, loading, error } = useGlossary();
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredTerms, setFilteredTerms] = useState([]);
   const isRTL = i18n.language === 'ar';
 
+  const highlightTermId = route?.params?.highlightTermId;
+  const scrollViewRef = useRef(null);
+  const cardRefs = useRef({});
+  const glowAnim = useRef(new Animated.Value(0)).current;
+
   useEffect(() => {
     if (glossaryTerms) {
       filterTerms(searchQuery);
     }
   }, [glossaryTerms, searchQuery, i18n.language]);
+
+  // Scroll to and animate highlighted term after load
+  useEffect(() => {
+    if (!highlightTermId || loading || !filteredTerms.length) return;
+
+    const pulse = Animated.loop(
+      Animated.sequence([
+        Animated.timing(glowAnim, { toValue: 1, duration: 700, useNativeDriver: false }),
+        Animated.timing(glowAnim, { toValue: 0, duration: 700, useNativeDriver: false }),
+      ]),
+      { iterations: 5 }
+    );
+
+    const timer = setTimeout(() => {
+      const ref = cardRefs.current[highlightTermId];
+      if (ref && scrollViewRef.current) {
+        ref.measureLayout(
+          scrollViewRef.current,
+          (_x, y) => {
+            scrollViewRef.current.scrollTo({ y: Math.max(0, y - 20), animated: true });
+            setTimeout(() => pulse.start(), 300);
+          },
+          () => pulse.start()
+        );
+      } else {
+        pulse.start();
+      }
+    }, 400);
+
+    return () => {
+      clearTimeout(timer);
+      pulse.stop();
+    };
+  }, [highlightTermId, loading, filteredTerms]);
 
   const filterTerms = (query) => {
     if (!query.trim()) {
@@ -194,9 +234,35 @@ const GlossaryScreen = ({ navigation }) => {
         </Text>
       </View>
       
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.contentContainer}>
-        {filteredTerms.map((term, index) => (
-          <View key={term.id || index} style={styles.termCard}>
+      <ScrollView ref={scrollViewRef} style={styles.scrollView} contentContainerStyle={styles.contentContainer}>
+        {filteredTerms.map((term, index) => {
+          const isHighlighted = term.id === highlightTermId;
+          const glowColor = glowAnim.interpolate({
+            inputRange: [0, 1],
+            outputRange: ['rgba(76, 175, 80, 0)', 'rgba(76, 175, 80, 0.55)'],
+          });
+          const glowRadius = glowAnim.interpolate({
+            inputRange: [0, 1],
+            outputRange: [0, 14],
+          });
+
+          return (
+          <Animated.View
+            key={term.id || index}
+            ref={ref => { if (term.id) cardRefs.current[term.id] = ref; }}
+            style={[
+              styles.termCard,
+              isHighlighted && {
+                shadowColor: glowColor,
+                shadowRadius: glowRadius,
+                shadowOpacity: 1,
+                shadowOffset: { width: 0, height: 0 },
+                elevation: 8,
+                borderWidth: 2,
+                borderColor: glowColor,
+              }
+            ]}
+          >
             <View style={styles.termHeader}>
               <Icon name="bookmark" size={20} color="#4CAF50" style={styles.termIcon} />
               <Text style={[styles.termTitle, isRTL && styles.rtlText]}>
@@ -206,8 +272,9 @@ const GlossaryScreen = ({ navigation }) => {
             <Text style={[styles.termDefinition, isRTL && styles.rtlText]}>
               {getTermDefinition(term)}
             </Text>
-          </View>
-        ))}
+          </Animated.View>
+          );
+        })}
 
         {filteredTerms.length === 0 && searchQuery.trim() !== '' && (
           <View style={styles.noResultsContainer}>

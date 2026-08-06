@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   Modal,
   Alert,
   Platform,
+  Animated,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useTranslation } from 'react-i18next';
@@ -17,7 +18,7 @@ import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import { getLocalDiagrams } from '../services/templateManager';
 
-const DiagramsScreen = ({ navigation }) => {
+const DiagramsScreen = ({ navigation, route }) => {
   const { t, i18n } = useTranslation();
   const [diagrams, setDiagrams] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -27,10 +28,51 @@ const DiagramsScreen = ({ navigation }) => {
   const [downloading, setDownloading] = useState(false);
   const isRTL = i18n.language === 'ar';
 
+  const highlightDiagramId = route?.params?.highlightDiagramId;
+  const scrollViewRef = useRef(null);
+  const cardRefs = useRef({});
+  const glowAnim = useRef(new Animated.Value(0)).current;
+
   // Load local diagrams on mount
   useEffect(() => {
     loadLocalDiagrams();
   }, []);
+
+  // Scroll to and animate highlighted diagram after load
+  useEffect(() => {
+    if (!highlightDiagramId || loading || diagrams.length === 0) return;
+
+    // Start pulsating glow animation
+    const pulse = Animated.loop(
+      Animated.sequence([
+        Animated.timing(glowAnim, { toValue: 1, duration: 700, useNativeDriver: false }),
+        Animated.timing(glowAnim, { toValue: 0, duration: 700, useNativeDriver: false }),
+      ]),
+      { iterations: 5 }
+    );
+
+    // Scroll after a brief delay to allow layout
+    const timer = setTimeout(() => {
+      const ref = cardRefs.current[highlightDiagramId];
+      if (ref && scrollViewRef.current) {
+        ref.measureLayout(
+          scrollViewRef.current,
+          (_x, y) => {
+            scrollViewRef.current.scrollTo({ y: Math.max(0, y - 20), animated: true });
+            setTimeout(() => pulse.start(), 300);
+          },
+          () => pulse.start()
+        );
+      } else {
+        pulse.start();
+      }
+    }, 400);
+
+    return () => {
+      clearTimeout(timer);
+      pulse.stop();
+    };
+  }, [highlightDiagramId, loading, diagrams]);
 
   const loadLocalDiagrams = async () => {
     try {
@@ -322,12 +364,36 @@ const DiagramsScreen = ({ navigation }) => {
         <View style={styles.headerSpacer} />
       </View>
       
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.contentContainer}>
+      <ScrollView ref={scrollViewRef} style={styles.scrollView} contentContainerStyle={styles.contentContainer}>
         {diagrams.map((diagram, index) => {
           const imageUrl = getDiagramImageUrl(diagram);
-          
+          const isHighlighted = diagram.id === highlightDiagramId;
+          const glowColor = glowAnim.interpolate({
+            inputRange: [0, 1],
+            outputRange: ['rgba(76, 175, 80, 0)', 'rgba(76, 175, 80, 0.55)'],
+          });
+          const glowRadius = glowAnim.interpolate({
+            inputRange: [0, 1],
+            outputRange: [0, 14],
+          });
+
           return (
-            <View key={diagram.id || index} style={styles.diagramCard}>
+            <Animated.View
+              key={diagram.id || index}
+              ref={ref => { if (diagram.id) cardRefs.current[diagram.id] = ref; }}
+              style={[
+                styles.diagramCard,
+                isHighlighted && {
+                  shadowColor: glowColor,
+                  shadowRadius: glowRadius,
+                  shadowOpacity: 1,
+                  shadowOffset: { width: 0, height: 0 },
+                  elevation: 8,
+                  borderWidth: 2,
+                  borderColor: glowColor,
+                }
+              ]}
+            >
               <TouchableOpacity
                 style={styles.imageContainer}
                 onPress={() => handleDiagramPress(diagram)}
@@ -357,7 +423,7 @@ const DiagramsScreen = ({ navigation }) => {
                   {getDiagramDescription(diagram)}
                 </Text>
               </View>
-            </View>
+            </Animated.View>
           );
         })}
       </ScrollView>

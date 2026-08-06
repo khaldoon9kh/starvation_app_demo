@@ -391,46 +391,46 @@ const SettingsScreen = ({ navigation, route }) => {
           {/* Download stats */}
           {downloadStats.categoriesCount > 0 && (
             <View style={styles.statsContainer}>
-              <Text style={styles.statsTitle}>
+              <Text style={[styles.statsTitle, isRTL && styles.rtlText]}>
                 {t('settingsScreen.contentFound', 'Content Found')}:
               </Text>
-              <View style={styles.statRow}>
+              <View style={[styles.statRow, isRTL && styles.statRowRTL]}>
                 <Icon name="folder" size={18} color="#2196F3" />
-                <Text style={styles.statText}>
+                <Text style={[styles.statText, isRTL && styles.rtlText]}>
                   {downloadStats.categoriesCount} {t('settingsScreen.categories', 'Categories')}
                 </Text>
               </View>
-              <View style={styles.statRow}>
+              <View style={[styles.statRow, isRTL && styles.statRowRTL]}>
                 <Icon name="article" size={18} color="#4CAF50" />
-                <Text style={styles.statText}>
+                <Text style={[styles.statText, isRTL && styles.rtlText]}>
                   {downloadStats.subcategoriesCount} {t('settingsScreen.articles', 'Articles')}
                 </Text>
               </View>
-              <View style={styles.statRow}>
+              <View style={[styles.statRow, isRTL && styles.statRowRTL]}>
                 <Icon name="description" size={18} color="#FF9800" />
-                <Text style={styles.statText}>
+                <Text style={[styles.statText, isRTL && styles.rtlText]}>
                   {downloadStats.templatesCount} {t('settingsScreen.templates', 'Templates')}
                 </Text>
               </View>
-              <View style={styles.statRow}>
+              <View style={[styles.statRow, isRTL && styles.statRowRTL]}>
                 <Icon name="image" size={18} color="#9C27B0" />
-                <Text style={styles.statText}>
+                <Text style={[styles.statText, isRTL && styles.rtlText]}>
                   {downloadStats.diagramsCount} {t('settingsScreen.diagrams', 'Diagrams')}
                 </Text>
               </View>
-              <View style={styles.statRow}>
+              <View style={[styles.statRow, isRTL && styles.statRowRTL]}>
                 <Icon name="menu-book" size={18} color="#F44336" />
-                <Text style={styles.statText}>
+                <Text style={[styles.statText, isRTL && styles.rtlText]}>
                   {downloadStats.glossaryCount} {t('settingsScreen.glossaryTerms', 'Glossary Terms')}
                 </Text>
               </View>
             </View>
           )}
-          
+
           {/* Warning message */}
-          <View style={styles.warningContainer}>
+          <View style={[styles.warningContainer, isRTL && styles.warningContainerRTL]}>
             <Icon name="warning" size={16} color="#FF9800" />
-            <Text style={styles.warningText}>
+            <Text style={[styles.warningText, isRTL && styles.warningTextRTL]}>
               {t('settingsScreen.doNotClose', 'Please do not close the app during update')}
             </Text>
           </View>
@@ -801,9 +801,15 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
   },
+  statRowRTL: {
+    flexDirection: 'row-reverse',
+  },
   statText: {
     fontSize: 13,
     color: '#555',
+  },
+  rtlText: {
+    textAlign: 'right',
   },
   warningContainer: {
     backgroundColor: '#fff3cd',
@@ -812,11 +818,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
+  warningContainerRTL: {
+    flexDirection: 'row-reverse',
+  },
   warningText: {
     fontSize: 12,
     color: '#856404',
     marginLeft: 8,
     flex: 1,
+  },
+  warningTextRTL: {
+    marginLeft: 0,
+    marginRight: 8,
+    textAlign: 'right',
   },
 });
 

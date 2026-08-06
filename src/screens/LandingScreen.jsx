@@ -27,6 +27,7 @@ const LandingScreen = ({ navigation }) => {
   const [downloadPhase, setDownloadPhase] = useState('idle');
   const [progress, setProgress] = useState(0);      // 0-100
   const [progressLabel, setProgressLabel] = useState('');
+  const [downloadStats, setDownloadStats] = useState(null);
   const [errorModal, setErrorModal] = useState({ visible: false, title: '', message: '', isNetworkError: false });
 
   useEffect(() => {
@@ -99,6 +100,13 @@ const LandingScreen = ({ navigation }) => {
       setProgress(30);
 
       setProgressLabel(t('settingsScreen.savingData', 'Saving content locally...'));
+      setDownloadStats({
+        categoriesCount: contentData.categories?.length || 0,
+        subcategoriesCount: contentData.subcategories?.length || 0,
+        templatesCount: contentData.templates?.length || 0,
+        diagramsCount: contentData.diagrams?.length || 0,
+        glossaryCount: contentData.glossary?.length || 0,
+      });
       await AsyncStorage.setItem(CONTENT_DATA_KEY, JSON.stringify(contentData));
       setProgress(40);
 
@@ -305,6 +313,44 @@ const LandingScreen = ({ navigation }) => {
             </View>
 
             <Text style={styles.progressPercent}>{progress}%</Text>
+
+            {downloadStats && (
+              <View style={styles.statsContainer}>
+                <Text style={[styles.statsTitle, isRTL && styles.rtlText]}>
+                  {t('settingsScreen.contentFound', 'Content Found')}:
+                </Text>
+                <View style={[styles.statRow, isRTL && styles.statRowRTL]}>
+                  <Icon name="folder" size={18} color="#2196F3" />
+                  <Text style={[styles.statText, isRTL && styles.rtlText]}>
+                    {downloadStats.categoriesCount} {t('settingsScreen.categories', 'Categories')}
+                  </Text>
+                </View>
+                <View style={[styles.statRow, isRTL && styles.statRowRTL]}>
+                  <Icon name="article" size={18} color="#4CAF50" />
+                  <Text style={[styles.statText, isRTL && styles.rtlText]}>
+                    {downloadStats.subcategoriesCount} {t('settingsScreen.articles', 'Articles')}
+                  </Text>
+                </View>
+                <View style={[styles.statRow, isRTL && styles.statRowRTL]}>
+                  <Icon name="description" size={18} color="#FF9800" />
+                  <Text style={[styles.statText, isRTL && styles.rtlText]}>
+                    {downloadStats.templatesCount} {t('settingsScreen.templates', 'Templates')}
+                  </Text>
+                </View>
+                <View style={[styles.statRow, isRTL && styles.statRowRTL]}>
+                  <Icon name="image" size={18} color="#9C27B0" />
+                  <Text style={[styles.statText, isRTL && styles.rtlText]}>
+                    {downloadStats.diagramsCount} {t('settingsScreen.diagrams', 'Diagrams')}
+                  </Text>
+                </View>
+                <View style={[styles.statRow, isRTL && styles.statRowRTL]}>
+                  <Icon name="menu-book" size={18} color="#F44336" />
+                  <Text style={[styles.statText, isRTL && styles.rtlText]}>
+                    {downloadStats.glossaryCount} {t('settingsScreen.glossaryTerms', 'Glossary Terms')}
+                  </Text>
+                </View>
+              </View>
+            )}
 
             <View style={styles.doNotCloseRow}>
               <Icon name="warning" size={14} color="#FF9800" />
@@ -566,6 +612,39 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#4CAF50',
     marginBottom: 24,
+  },
+
+  // ── Content stats (mirrors SettingsScreen modal style) ────
+  statsContainer: {
+    backgroundColor: '#f8f9fa',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 20,
+    width: '100%',
+  },
+  statsTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 12,
+  },
+  statRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+    gap: 10,
+  },
+  statRowRTL: {
+    flexDirection: 'row-reverse',
+  },
+  statText: {
+    fontSize: 13,
+    color: '#555',
+  },
+  rtlText: {
+    textAlign: 'right',
   },
 
   // Do-not-close warning

@@ -307,6 +307,15 @@ const LibraryScreen = ({navigation}) => {
 
         {/* Fixed Diagrams Section */}
         <View style={styles.sectionContainer}>
+        
+        {categories.map(renderCategory)}
+        
+        {categories.length === 0 && !categoriesLoading && (
+          <View style={styles.emptyContainer}>
+            <Text style={[styles.emptyText, isRTL && styles.rtlText]}>{t('libraryScreen.noContent')}</Text>
+            <Text style={[styles.emptySubText, isRTL && styles.rtlText]}>{t('libraryScreen.noContentSub')}</Text>
+          </View>
+        )}
           <TouchableOpacity
             style={[
               styles.sectionItem,
@@ -380,15 +389,6 @@ const LibraryScreen = ({navigation}) => {
             />
           </TouchableOpacity>
         </View>
-        
-        {categories.map(renderCategory)}
-        
-        {categories.length === 0 && !categoriesLoading && (
-          <View style={styles.emptyContainer}>
-            <Text style={[styles.emptyText, isRTL && styles.rtlText]}>{t('libraryScreen.noContent')}</Text>
-            <Text style={[styles.emptySubText, isRTL && styles.rtlText]}>{t('libraryScreen.noContentSub')}</Text>
-          </View>
-        )}
       </View>
     </ScrollView>
   );

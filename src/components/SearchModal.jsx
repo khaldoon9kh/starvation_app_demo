@@ -34,13 +34,6 @@ const SearchModal = ({ visible, onClose }) => {
     return () => clearTimeout(timeoutId);
   }, [searchText, search, i18n.language]);
 
-  // Clear search when modal closes
-  useEffect(() => {
-    if (!visible) {
-      setSearchText('');
-      search('', i18n.language);
-    }
-  }, [visible, search, i18n.language]);
 
   // Calculate total results
   const totalResults = searchResults.categories.length + 
@@ -103,8 +96,14 @@ const SearchModal = ({ visible, onClose }) => {
       // Navigate to library to show the category
       navigation.navigate('Library');
     } else if (type === 'glossary') {
-      // Navigate to library (glossary terms are shown there)
+      // Navigate to GlossaryScreen and highlight the specific term
       navigation.navigate('Library');
+      setTimeout(() => {
+        navigation.navigate('Library', {
+          screen: 'Glossary',
+          params: { highlightTermId: item.id }
+        });
+      }, 50);
     } else if (type === 'template') {
       // Navigate to the specific template category
       const category = i18n.language === 'ar' 
@@ -130,8 +129,14 @@ const SearchModal = ({ visible, onClose }) => {
         navigation.navigate('Templates');
       }
     } else if (type === 'diagram') {
-      // Diagrams are shown in articles, so just go to library
+      // Navigate to the DiagramsScreen and highlight the specific diagram
       navigation.navigate('Library');
+      setTimeout(() => {
+        navigation.navigate('Library', {
+          screen: 'Diagrams',
+          params: { highlightDiagramId: item.id }
+        });
+      }, 50);
     }
   };
 
@@ -356,7 +361,15 @@ const SearchModal = ({ visible, onClose }) => {
               autoFocus={true}
               returnKeyType="search"
             />
-            <TouchableOpacity 
+            {searchText.length > 0 && (
+              <TouchableOpacity
+                style={styles.clearButton}
+                onPress={() => setSearchText('')}
+              >
+                <Icon name="backspace" size={20} color="#999" />
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity
               style={styles.closeButton}
               onPress={onClose}
             >
@@ -507,6 +520,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 20,
     paddingHorizontal: 15,
+  },
+  clearButton: {
+    padding: 8,
   },
   closeButton: {
     padding: 8,

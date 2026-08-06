@@ -302,9 +302,9 @@ const ArticleScreen = ({route, navigation}) => {
           styles.headerActions,
           { flexDirection: isRTL ? 'row-reverse' : 'row' }
         ]}>
-          <TouchableOpacity style={styles.searchButton}>
+          {/* <TouchableOpacity style={styles.searchButton}>
             <Icon name="search" size={24} color="#4CAF50" />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
           <TouchableOpacity 
             style={styles.saveButton}
             onPress={toggleSave}>
